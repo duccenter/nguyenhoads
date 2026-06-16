@@ -214,7 +214,11 @@ export default function BanHang() {
 
   // Thống kê
   const filteredSales = sales.filter(s => {
-    const matchSearch = s.customerName?.toLowerCase().includes(filterSearch.toLowerCase()) || s.phone?.includes(filterSearch);
+    let matchSearch = true;
+    if (filterSearch) {
+      const lowerSearch = filterSearch.toLowerCase();
+      matchSearch = !!(s.customerName?.toLowerCase().includes(lowerSearch) || s.phone?.includes(filterSearch));
+    }
     if (!matchSearch) return false;
     
     if (filterFromDate || filterToDate) {

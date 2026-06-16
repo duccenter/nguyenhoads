@@ -108,10 +108,11 @@ export default function KhoHang() {
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(filterSearch.toLowerCase()) || 
-    p.code.toLowerCase().includes(filterSearch.toLowerCase())
-  );
+  const filteredProducts = products.filter(p => {
+    if (!filterSearch) return true;
+    const lowerSearch = filterSearch.toLowerCase();
+    return !!(p.name?.toLowerCase().includes(lowerSearch) || p.code?.toLowerCase().includes(lowerSearch));
+  });
 
   return (
     <div className="module-container">

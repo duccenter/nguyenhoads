@@ -64,7 +64,11 @@ export default function CongNo() {
   const rawCurrentData = activeTab === 'phaithu' ? debts : debtsTra;
 
   const currentData = rawCurrentData.filter(row => {
-    const matchSearch = row.name?.toLowerCase().includes(filterSearch.toLowerCase()) || row.phone?.includes(filterSearch);
+    let matchSearch = true;
+    if (filterSearch) {
+      const lowerSearch = filterSearch.toLowerCase();
+      matchSearch = !!(row.name?.toLowerCase().includes(lowerSearch) || row.phone?.includes(filterSearch));
+    }
     if (!matchSearch) return false;
     
     if (filterFromDate || filterToDate) {

@@ -15,10 +15,11 @@ export default function KhachHang() {
     });
   }, []);
 
-  const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.phone.includes(searchTerm)
-  );
+  const filteredCustomers = customers.filter(c => {
+    if (!searchTerm) return true;
+    const lowerSearch = searchTerm.toLowerCase();
+    return !!(c.name?.toLowerCase().includes(lowerSearch) || c.phone?.includes(searchTerm));
+  });
 
   const getCustomerBadge = (spent: number) => {
     if (spent >= 20000000) return <span style={{ padding: '4px 8px', background: '#fef08a', color: '#854d0e', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>VIP</span>;
