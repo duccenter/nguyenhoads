@@ -7,6 +7,7 @@ import KhoHang from './components/KhoHang';
 import CongNo from './components/CongNo';
 import KhachHang from './components/KhachHang';
 import Login from './components/Login';
+import ErrorBoundary from './components/ErrorBoundary';
 
 type TabType = 'dashboard' | 'thuchi' | 'banhang' | 'nhapkho' | 'congno' | 'khachhang';
 
@@ -55,7 +56,7 @@ export default function App() {
   // Lọc menu theo phân quyền
   const allowedNavItems = allNavItems.filter(item => {
     if (user.role === 'admin') return true;
-    return item.roles.some(r => user.role.toLowerCase().includes(r));
+    return item.roles.some(r => user.role?.toLowerCase().includes(r));
   });
 
   const handleTabClick = (id: TabType) => {
@@ -131,12 +132,14 @@ export default function App() {
       {isMobileMenuOpen && <div className="overlay" onClick={() => setIsMobileMenuOpen(false)}></div>}
 
       <div className="main-content">
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'thuchi' && <ThuChi />}
-        {activeTab === 'banhang' && <BanHang />}
-        {activeTab === 'nhapkho' && <KhoHang />}
-        {activeTab === 'congno' && <CongNo />}
-        {activeTab === 'khachhang' && <KhachHang />}
+        <ErrorBoundary>
+          {activeTab === 'dashboard' && <Dashboard />}
+          {activeTab === 'thuchi' && <ThuChi />}
+          {activeTab === 'banhang' && <BanHang />}
+          {activeTab === 'nhapkho' && <KhoHang />}
+          {activeTab === 'congno' && <CongNo />}
+          {activeTab === 'khachhang' && <KhachHang />}
+        </ErrorBoundary>
       </div>
     </div>
   );
