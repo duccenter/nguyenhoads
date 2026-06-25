@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { PlusCircle, Printer, Trash2, ShoppingCart, TrendingUp, UserCheck, RefreshCw, X, Edit, Search } from 'lucide-react';
+import { Printer, Trash2, ShoppingCart, TrendingUp, UserCheck, RefreshCw, X, Edit, Search } from 'lucide-react';
 import { fetchData, postData } from '../api';
 
 // --- TYPES ---

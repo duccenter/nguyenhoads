@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { 
-  PlusCircle, 
   Printer, 
   Trash2, 
   Wallet, 
