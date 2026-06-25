@@ -165,7 +165,7 @@ export default function App() {
       {isMobileMenuOpen && <div className="overlay" onClick={() => setIsMobileMenuOpen(false)}></div>}
 
       <div className="main-content">
-        <ErrorBoundary>
+        <ErrorBoundary key={activeTab}>
           {activeTab === 'dashboard' && <Dashboard />}
           {activeTab === 'thuchi' && <ThuChi />}
           {activeTab === 'banhang' && <BanHang />}
