@@ -21,7 +21,8 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     if (user?.role === 'admin') return 'dashboard';
-    if (user?.username?.toLowerCase() === 'nv_03') return 'thuchi';
+    const uname = user?.username?.toLowerCase();
+    if (uname === 'nv_03' || uname === 'thuchi') return 'thuchi';
     return 'banhang';
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,9 +33,10 @@ export default function App() {
       try {
         const parsed = JSON.parse(userStr);
         setUser(parsed);
+        const uname = parsed.username?.toLowerCase();
         if (parsed.role === 'admin') {
           setActiveTab('dashboard');
-        } else if (parsed.username?.toLowerCase() === 'nv_03') {
+        } else if (uname === 'nv_03' || uname === 'thuchi') {
           setActiveTab('thuchi');
         } else {
           setActiveTab('banhang');
@@ -50,11 +52,12 @@ export default function App() {
 
   const handleLoginSuccess = (loggedInUser: User) => {
     setUser(loggedInUser);
+    const uname = loggedInUser.username?.toLowerCase();
     if (loggedInUser.role === 'admin') {
       setActiveTab('dashboard');
-    } else if (loggedInUser.username?.toLowerCase() === 'nv_02') {
+    } else if (uname === 'nv_02' || uname === 'kho') {
       setActiveTab('banhang');
-    } else if (loggedInUser.username?.toLowerCase() === 'nv_03') {
+    } else if (uname === 'nv_03' || uname === 'thuchi') {
       setActiveTab('thuchi');
     } else {
       setActiveTab('banhang');
@@ -79,10 +82,10 @@ export default function App() {
     if (user.role === 'admin') return true;
     
     const uname = user.username?.toLowerCase();
-    if (uname === 'nv_02') {
+    if (uname === 'nv_02' || uname === 'kho') {
       return ['banhang', 'nhapkho'].includes(item.id);
     }
-    if (uname === 'nv_03') {
+    if (uname === 'nv_03' || uname === 'thuchi') {
       return ['thuchi', 'congno'].includes(item.id);
     }
     
