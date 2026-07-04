@@ -141,11 +141,41 @@ function doGet(e) {
     else if (module === 'khachhang') {
       const sheet = ss.getSheetByName("Khách Hàng");
       const values = sheet.getDataRange().getValues();
+      
+      // Lấy dữ liệu bán hàng để thống kê
+      const bhSheet = ss.getSheetByName("Bán Hàng");
+      const bhValues = bhSheet ? bhSheet.getDataRange().getValues() : [];
+      const stats = {};
+      
+      for (let i = 1; i < bhValues.length; i++) {
+        let row = bhValues[i];
+        if (!row[0]) continue;
+        let phone = String(row[2] || "").replace(/^'/, "");
+        let totalAmount = Number(row[5]) || 0;
+        let debt = Number(row[7]) || 0;
+        
+        if (!stats[phone]) stats[phone] = { spent: 0, debt: 0, count: 0 };
+        stats[phone].spent += totalAmount;
+        stats[phone].debt += debt;
+        stats[phone].count += 1;
+      }
+
       const data = [];
       for (let i = 1; i < values.length; i++) {
         let row = values[i];
         if (!row[0]) continue;
-        data.push({ id: row[0], phone: row[1] || "", name: row[2] || "", purchaseCount: row[3] || 0, note: row[4] || "" });
+        let phone = String(row[1] || "").replace(/^'/, "");
+        let stat = stats[phone] || { spent: 0, debt: 0, count: 0 };
+        
+        data.push({ 
+          id: row[0], 
+          phone: phone, 
+          name: row[2] || "", 
+          purchaseCount: stat.count, // Sử dụng count thực tế từ số hóa đơn
+          totalSpent: stat.spent,
+          debt: stat.debt,
+          note: row[4] || "" 
+        });
       }
       return responseJson({ data: data });
     }

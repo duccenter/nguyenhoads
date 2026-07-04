@@ -119,15 +119,16 @@ export default function KhachHang() {
                 <th className="px-6 py-4 text-center">Phân hạng</th>
                 <th className="px-6 py-4 text-center">Số lần mua</th>
                 <th className="px-6 py-4 text-right">Tổng Chi Tiêu</th>
+                <th className="px-6 py-4 text-right">Công nợ</th>
                 <th className="px-6 py-4">Ghi chú</th>
                 <th className="px-6 py-4 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {loading && customers.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
               ) : filteredCustomers.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Không tìm thấy khách hàng nào.</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Không tìm thấy khách hàng nào.</td></tr>
               ) : (
                 filteredCustomers.map((c) => (
                   <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
@@ -135,7 +136,8 @@ export default function KhachHang() {
                     <td className="px-6 py-4">{c.phone}</td>
                     <td className="px-6 py-4 text-center">{getCustomerBadge(c.totalSpent)}</td>
                     <td className="px-6 py-4 text-center font-medium">{c.purchaseCount}</td>
-                    <td className="px-6 py-4 text-right font-bold text-sky-600">{formatMoney(c.totalSpent)} đ</td>
+                    <td className="px-6 py-4 text-right font-bold text-sky-600">{formatMoney(c.totalSpent || 0)} đ</td>
+                    <td className="px-6 py-4 text-right font-bold text-red-500">{c.debt > 0 ? formatMoney(c.debt) + ' đ' : '-'}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{c.note || '-'}</td>
                     <td className="px-6 py-4 text-right">
                       <button 
