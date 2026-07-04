@@ -1,18 +1,32 @@
-import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, UserPlus, X, Save } from 'lucide-react';
 import { formatMoney } from '../utils';
-import { fetchData } from '../api';
+import { fetchData, postData } from '../api';
 
 export default function KhachHang() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', note: '' });
+  const [errorMsg, setErrorMsg] = useState('');
 
-  useEffect(() => {
+  const loadData = () => {
+    setLoading(true);
     fetchData('khachhang').then(res => {
       if (res.data) setCustomers(res.data);
       setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
   const filteredCustomers = customers.filter(c => {
@@ -22,58 +36,91 @@ export default function KhachHang() {
   });
 
   const getCustomerBadge = (spent: number) => {
-    if (spent >= 20000000) return <span style={{ padding: '4px 8px', background: '#fef08a', color: '#854d0e', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>VIP</span>;
-    if (spent >= 5000000) return <span style={{ padding: '4px 8px', background: '#bfdbfe', color: '#1e40af', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>Thân thiết</span>;
-    return <span style={{ padding: '4px 8px', background: '#f1f5f9', color: '#475569', borderRadius: '12px', fontSize: '12px' }}>Mới</span>;
+    if (spent >= 20000000) return <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">VIP</span>;
+    if (spent >= 5000000) return <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">Thân thiết</span>;
+    return <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs">Mới</span>;
+  };
+
+  const handleAddCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustomer.name || !newCustomer.phone) {
+      setErrorMsg('Vui lòng nhập tên và số điện thoại!');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMsg('');
+    try {
+      const res = await postData('khachhang', 'add', newCustomer);
+      if (res.success) {
+        setShowModal(false);
+        setNewCustomer({ name: '', phone: '', note: '' });
+        loadData(); // Tải lại danh sách
+      } else {
+        setErrorMsg(res.error || 'Có lỗi xảy ra khi thêm khách hàng.');
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Lỗi kết nối!');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="module-container">
-      <div className="header">
-        <h1 className="title">Quản Lý Khách Hàng (CRM)</h1>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Quản Lý Khách Hàng (CRM)</h1>
       </div>
 
-      <div className="card">
-        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <h2 className="card-title">Danh sách Khách Hàng</h2>
-          <div style={{ position: 'relative', width: '300px' }}>
-            <Search size={18} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
-            <input 
-              type="text" 
-              className="form-control" 
-              placeholder="Tìm theo tên hoặc SĐT..." 
-              style={{ paddingLeft: '35px' }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
+          <h2 className="text-lg font-semibold text-slate-800">Danh sách Khách Hàng</h2>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input 
+                type="text" 
+                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all text-sm"
+                placeholder="Tìm theo tên hoặc SĐT..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button 
+              onClick={() => setShowModal(true)}
+              className="flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm"
+            >
+              <UserPlus size={18} /> Thêm khách hàng
+            </button>
           </div>
         </div>
-        <div className="table-responsive">
-          <table>
-            <thead>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase text-xs font-semibold">
               <tr>
-                <th>Khách Hàng</th>
-                <th>SĐT</th>
-                <th className="text-center">Phân hạng</th>
-                <th className="text-right">Số lần mua</th>
-                <th className="text-right">Tổng Chi Tiêu</th>
-                <th>Ghi chú</th>
+                <th className="px-6 py-4">Khách Hàng</th>
+                <th className="px-6 py-4">Số điện thoại</th>
+                <th className="px-6 py-4 text-center">Phân hạng</th>
+                <th className="px-6 py-4 text-center">Số lần mua</th>
+                <th className="px-6 py-4 text-right">Tổng Chi Tiêu</th>
+                <th className="px-6 py-4">Ghi chú</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
               {loading && customers.length === 0 ? (
-                <tr><td colSpan={6} className="text-center" style={{padding: '2rem'}}>Đang tải dữ liệu...</td></tr>
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
               ) : filteredCustomers.length === 0 ? (
-                <tr><td colSpan={6} className="text-center" style={{padding: '2rem', color: 'var(--text-secondary)'}}>Không tìm thấy khách hàng.</td></tr>
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">Không tìm thấy khách hàng nào.</td></tr>
               ) : (
                 filteredCustomers.map((c) => (
-                  <tr key={c.id}>
-                    <td style={{ fontWeight: 'bold' }}>{c.name}</td>
-                    <td>{c.phone}</td>
-                    <td className="text-center">{getCustomerBadge(c.totalSpent)}</td>
-                    <td className="text-right">{c.purchaseCount}</td>
-                    <td className="text-right" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>{formatMoney(c.totalSpent)} đ</td>
-                    <td>{c.note}</td>
+                  <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-800">{c.name}</td>
+                    <td className="px-6 py-4">{c.phone}</td>
+                    <td className="px-6 py-4 text-center">{getCustomerBadge(c.totalSpent)}</td>
+                    <td className="px-6 py-4 text-center font-medium">{c.purchaseCount}</td>
+                    <td className="px-6 py-4 text-right font-bold text-sky-600">{formatMoney(c.totalSpent)} đ</td>
+                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{c.note || '-'}</td>
                   </tr>
                 ))
               )}
@@ -81,6 +128,84 @@ export default function KhachHang() {
           </table>
         </div>
       </div>
+
+      {/* Modal Thêm Khách Hàng */}
+      {showModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <UserPlus size={20} className="text-sky-500" /> Tạo Khách Hàng Mới
+              </h3>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 p-2 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddCustomer} className="p-6 space-y-4">
+              {errorMsg && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100">
+                  {errorMsg}
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tên khách hàng <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  autoFocus
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                  placeholder="Nhập tên khách hàng..."
+                  value={newCustomer.name}
+                  onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Số điện thoại <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                  placeholder="Nhập số điện thoại..."
+                  value={newCustomer.phone}
+                  onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ghi chú (Tùy chọn)</label>
+                <textarea 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all resize-none"
+                  placeholder="Thông tin thêm về khách hàng..."
+                  rows={3}
+                  value={newCustomer.note}
+                  onChange={(e) => setNewCustomer({...newCustomer, note: e.target.value})}
+                ></textarea>
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors"
+                >
+                  Hủy bỏ
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-sky-500/20"
+                >
+                  {isSubmitting ? 'Đang lưu...' : <><Save size={18} /> Lưu Khách Hàng</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
