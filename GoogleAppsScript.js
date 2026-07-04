@@ -272,6 +272,30 @@ function doPost(e) {
       }
     }
 
+    else if (module === 'khachhang') {
+      const sheet = ss.getSheetByName("Khách Hàng");
+      if (action === 'add') {
+        const d = payload.data || payload;
+        const newId = generateId();
+        // ID, SĐT, Tên Khách, Số lần mua, Ghi chú
+        sheet.appendRow([newId, "'" + d.phone, d.name, 0, d.note || ""]);
+        logAudit(ss, user, "Thêm Mới", "Khách Hàng", `Thêm khách hàng: ${d.name}`);
+        return responseJson({ success: true, id: newId });
+      } else if (action === 'edit' || action === 'update') {
+        const d = payload.data || payload;
+        const match = getRowById(sheet, d.id);
+        if (match) {
+          // ID ở cột 1, SĐT ở cột 2, Tên ở cột 3, Số lần mua ở cột 4, Ghi chú ở cột 5
+          sheet.getRange(match.rowNum, 2).setValue("'" + d.phone);
+          sheet.getRange(match.rowNum, 3).setValue(d.name);
+          sheet.getRange(match.rowNum, 5).setValue(d.note || "");
+          logAudit(ss, user, "Cập nhật", "Khách Hàng", `Sửa thông tin KH: ${d.name}`);
+          return responseJson({ success: true });
+        }
+        return responseJson({ error: 'Không tìm thấy khách hàng' }, 404);
+      }
+    }
+
     else if (module === 'banhang') {
       const sheetBanHang = ss.getSheetByName("Bán Hàng");
       
