@@ -1,4 +1,4 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUpBwzaTQNJy6xlCdHy5YfPNrMYQUeeo9dlgXiw86A2rJHBRJo9CxS9ysnmrBvDpFS/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkkFexubuo0ebWpdzTYOP-78NLhdlDjI5W6sCoznGLyqyE1PLA4ofpUdphChDBF3AbcQ/exec';
 
 export async function fetchData(module: string, params: Record<string, string | number> = {}) {
   try {
