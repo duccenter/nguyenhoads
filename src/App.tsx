@@ -53,6 +53,16 @@ export default function App() {
     return '/banhang';
   };
 
+  const hasAccess = (roles: string[]) => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    
+    const uname = user.username?.toLowerCase();
+    if ((uname === 'nv_02' || uname === 'kho') && roles.includes('kho')) return true;
+    if ((uname === 'nv_03' || uname === 'thuchi') && roles.includes('thuchi')) return true;
+    
+    return roles.some(r => user.role?.toLowerCase().includes(r));
+  };
   return (
     <Router>
       <ErrorBoundary>
