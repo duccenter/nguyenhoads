@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, X, Save } from 'lucide-react';
+import { Search, UserPlus, X, Save, Edit2 } from 'lucide-react';
 import { formatMoney } from '../utils';
 import { fetchData, postData } from '../api';
 
@@ -10,8 +10,9 @@ export default function KhachHang() {
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', note: '' });
+  const [customerForm, setCustomerForm] = useState({ id: '', name: '', phone: '', note: '' });
   const [errorMsg, setErrorMsg] = useState('');
 
   const loadData = () => {
@@ -41,9 +42,23 @@ export default function KhachHang() {
     return <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs">Mới</span>;
   };
 
-  const handleAddCustomer = async (e: React.FormEvent) => {
+  const handleOpenAddModal = () => {
+    setIsEditMode(false);
+    setCustomerForm({ id: '', name: '', phone: '', note: '' });
+    setErrorMsg('');
+    setShowModal(true);
+  };
+
+  const handleOpenEditModal = (c: any) => {
+    setIsEditMode(true);
+    setCustomerForm({ id: c.id, name: c.name, phone: c.phone, note: c.note || '' });
+    setErrorMsg('');
+    setShowModal(true);
+  };
+
+  const handleSubmitCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCustomer.name || !newCustomer.phone) {
+    if (!customerForm.name || !customerForm.phone) {
       setErrorMsg('Vui lòng nhập tên và số điện thoại!');
       return;
     }
@@ -51,13 +66,13 @@ export default function KhachHang() {
     setIsSubmitting(true);
     setErrorMsg('');
     try {
-      const res = await postData('khachhang', 'add', newCustomer);
+      const action = isEditMode ? 'edit' : 'add';
+      const res = await postData('khachhang', action, customerForm);
       if (res.success) {
         setShowModal(false);
-        setNewCustomer({ name: '', phone: '', note: '' });
         loadData(); // Tải lại danh sách
       } else {
-        setErrorMsg(res.error || 'Có lỗi xảy ra khi thêm khách hàng.');
+        setErrorMsg(res.error || 'Có lỗi xảy ra khi lưu khách hàng.');
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Lỗi kết nối!');
@@ -87,7 +102,7 @@ export default function KhachHang() {
               />
             </div>
             <button 
-              onClick={() => setShowModal(true)}
+              onClick={handleOpenAddModal}
               className="flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm"
             >
               <UserPlus size={18} /> Thêm khách hàng
@@ -105,13 +120,14 @@ export default function KhachHang() {
                 <th className="px-6 py-4 text-center">Số lần mua</th>
                 <th className="px-6 py-4 text-right">Tổng Chi Tiêu</th>
                 <th className="px-6 py-4">Ghi chú</th>
+                <th className="px-6 py-4 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {loading && customers.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
               ) : filteredCustomers.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">Không tìm thấy khách hàng nào.</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">Không tìm thấy khách hàng nào.</td></tr>
               ) : (
                 filteredCustomers.map((c) => (
                   <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
@@ -121,6 +137,15 @@ export default function KhachHang() {
                     <td className="px-6 py-4 text-center font-medium">{c.purchaseCount}</td>
                     <td className="px-6 py-4 text-right font-bold text-sky-600">{formatMoney(c.totalSpent)} đ</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{c.note || '-'}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => handleOpenEditModal(c)}
+                        className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors inline-flex"
+                        title="Sửa thông tin"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -129,13 +154,17 @@ export default function KhachHang() {
         </div>
       </div>
 
-      {/* Modal Thêm Khách Hàng */}
+      {/* Modal Thêm/Sửa Khách Hàng */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <UserPlus size={20} className="text-sky-500" /> Tạo Khách Hàng Mới
+                {isEditMode ? (
+                  <><Edit2 size={20} className="text-sky-500" /> Sửa Khách Hàng</>
+                ) : (
+                  <><UserPlus size={20} className="text-sky-500" /> Tạo Khách Hàng Mới</>
+                )}
               </h3>
               <button 
                 onClick={() => setShowModal(false)}
@@ -145,7 +174,7 @@ export default function KhachHang() {
               </button>
             </div>
             
-            <form onSubmit={handleAddCustomer} className="p-6 space-y-4">
+            <form onSubmit={handleSubmitCustomer} className="p-6 space-y-4">
               {errorMsg && (
                 <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100">
                   {errorMsg}
@@ -159,8 +188,8 @@ export default function KhachHang() {
                   autoFocus
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
                   placeholder="Nhập tên khách hàng..."
-                  value={newCustomer.name}
-                  onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
+                  value={customerForm.name}
+                  onChange={(e) => setCustomerForm({...customerForm, name: e.target.value})}
                 />
               </div>
 
@@ -170,8 +199,8 @@ export default function KhachHang() {
                   type="text" 
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
                   placeholder="Nhập số điện thoại..."
-                  value={newCustomer.phone}
-                  onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                  value={customerForm.phone}
+                  onChange={(e) => setCustomerForm({...customerForm, phone: e.target.value})}
                 />
               </div>
 
@@ -181,8 +210,8 @@ export default function KhachHang() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all resize-none"
                   placeholder="Thông tin thêm về khách hàng..."
                   rows={3}
-                  value={newCustomer.note}
-                  onChange={(e) => setNewCustomer({...newCustomer, note: e.target.value})}
+                  value={customerForm.note}
+                  onChange={(e) => setCustomerForm({...customerForm, note: e.target.value})}
                 ></textarea>
               </div>
 
@@ -199,7 +228,7 @@ export default function KhachHang() {
                   disabled={isSubmitting}
                   className="flex-1 px-4 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-sky-500/20"
                 >
-                  {isSubmitting ? 'Đang lưu...' : <><Save size={18} /> Lưu Khách Hàng</>}
+                  {isSubmitting ? 'Đang lưu...' : <><Save size={18} /> {isEditMode ? 'Cập Nhật' : 'Lưu Khách Hàng'}</>}
                 </button>
               </div>
             </form>

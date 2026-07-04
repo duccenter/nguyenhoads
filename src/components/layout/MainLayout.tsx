@@ -31,10 +31,10 @@ export default function MainLayout({ user, onLogout }: MainLayoutProps) {
     
     const uname = user.username?.toLowerCase();
     if (uname === 'nv_02' || uname === 'kho') {
-      return ['banhang', 'nhapkho'].includes(item.id);
+      return ['banhang', 'nhapkho', 'khachhang'].includes(item.id);
     }
     if (uname === 'nv_03' || uname === 'thuchi') {
-      return ['thuchi', 'congno'].includes(item.id);
+      return ['thuchi', 'congno', 'khachhang'].includes(item.id);
     }
     
     return item.roles.some(r => user.role?.toLowerCase().includes(r));
