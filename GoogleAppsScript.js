@@ -663,3 +663,176 @@ function doOptions(e) {
   };
   return ContentService.createTextOutput("").setMimeType(ContentService.MimeType.TEXT).setHeaders(headers);
 }
+
+
+// ---------------- FIREBASE SYNC ----------------
+const FIREBASE_URL = 'https://nguyenhoads-app-default-rtdb.asia-southeast1.firebasedatabase.app/';
+
+function triggerFirebaseSync(ss, modules) {
+  try {
+    const requests = [];
+    modules.forEach(module => {
+      let result = {};
+      if (module === 'banhang') {
+        const sheet = ss.getSheetByName("Bán Hàng");
+        const values = sheet.getDataRange().getValues();
+        const data = [];
+        for (let i = 1; i < values.length; i++) {
+          let row = values[i];
+          if (!row[0]) continue;
+          let rowDate = row[1] instanceof Date ? row[1].toISOString().split('T')[0] : row[1];
+          data.push({
+            id: row[0], date: rowDate, phone: row[2] || "", customerName: row[3] || "",
+            items: JSON.parse(row[4] || "[]"), totalAmount: row[5] || 0,
+            paidAmount: row[6] || 0, debt: row[7] || 0, note: row[8] || "", creator: row[9] || ""
+          });
+        }
+        result = { data: data };
+      }
+      else if (module === 'nhapkho') {
+        const sheet = ss.getSheetByName("Nhập Kho");
+        const values = sheet.getDataRange().getValues();
+        const data = [];
+        for (let i = 1; i < values.length; i++) {
+          let row = values[i];
+          if (!row[0]) continue;
+          let rowDate = row[1] instanceof Date ? row[1].toISOString().split('T')[0] : row[1];
+          data.push({
+            id: row[0], date: rowDate, supplier: row[2] || "",
+            items: JSON.parse(row[3] || "[]"), totalAmount: row[4] || 0,
+            paidAmount: row[5] || 0, debt: row[6] || 0, note: row[7] || "", creator: row[8] || ""
+          });
+        }
+        result = { data: data };
+      }
+      else if (module === 'khohang') {
+        const sheetTonKho = ss.getSheetByName("Tồn Kho");
+        const tkValues = sheetTonKho.getDataRange().getValues();
+        const products = [];
+        for (let i = 1; i < tkValues.length; i++) {
+          let row = tkValues[i];
+          if (!row[0]) continue;
+          products.push({ id: row[0], code: row[1] || "", name: row[2] || "", unit: row[3] || "", importPrice: row[4] || 0, price: row[5] || 0, stock: row[6] || 0 });
+        }
+
+        const sheetLichSu = ss.getSheetByName("Lịch Sử Kho");
+        const lsValues = sheetLichSu.getDataRange().getValues();
+        const logs = [];
+        for (let i = 1; i < lsValues.length; i++) {
+          let row = lsValues[i];
+          if (!row[0]) continue;
+          logs.push({
+            id: row[0], productId: row[1], productName: row[2],
+            date: row[3] instanceof Date ? row[3].toISOString().split('T')[0] : row[3],
+            type: row[4] || "export", quantity: row[5] || 0, note: row[6] || "", user: row[7] || ""
+          });
+        }
+        result = { products: products, logs: logs };
+      }
+      else if (module === 'khachhang') {
+        const sheet = ss.getSheetByName("Khách Hàng");
+        const values = sheet.getDataRange().getValues();
+        
+        const bhSheet = ss.getSheetByName("Bán Hàng");
+        const bhValues = bhSheet ? bhSheet.getDataRange().getValues() : [];
+        const stats = {};
+        for (let i = 1; i < bhValues.length; i++) {
+          let row = bhValues[i];
+          if (!row[0]) continue;
+          let phone = String(row[2] || "").replace(/^'/, "");
+          let totalAmount = Number(row[5]) || 0;
+          let debt = Number(row[7]) || 0;
+          if (!stats[phone]) stats[phone] = { spent: 0, debt: 0, count: 0 };
+          stats[phone].spent += totalAmount;
+          stats[phone].debt += debt;
+          stats[phone].count += 1;
+        }
+
+        const data = [];
+        for (let i = 1; i < values.length; i++) {
+          let row = values[i];
+          if (!row[0]) continue;
+          let phone = String(row[1] || "").replace(/^'/, "");
+          let stat = stats[phone] || { spent: 0, debt: 0, count: 0 };
+          data.push({ 
+            id: row[0], phone: phone, name: row[2] || "", 
+            purchaseCount: stat.count, totalSpent: stat.spent, debt: stat.debt, note: row[4] || "" 
+          });
+        }
+        result = { data: data };
+      }
+      else if (module === 'congno') {
+        const bhSheet = ss.getSheetByName("Bán Hàng");
+        const bhValues = bhSheet.getDataRange().getValues();
+        const phaithu = [];
+        for (let i = 1; i < bhValues.length; i++) {
+          let row = bhValues[i];
+          if (!row[0]) continue;
+          let debt = Number(row[7]) || 0;
+          if (debt > 0) {
+            phaithu.push({
+              id: row[0], date: row[1] instanceof Date ? row[1].toISOString().split('T')[0] : row[1],
+              phone: row[2], name: row[3], total: row[5], debt: debt
+            });
+          }
+        }
+
+        const nkSheet = ss.getSheetByName("Nhập Kho");
+        const nkValues = nkSheet.getDataRange().getValues();
+        const phaitra = [];
+        for (let i = 1; i < nkValues.length; i++) {
+          let row = nkValues[i];
+          if (!row[0]) continue;
+          let debt = Number(row[6]) || 0;
+          if (debt > 0) {
+            phaitra.push({
+              id: row[0], date: row[1] instanceof Date ? row[1].toISOString().split('T')[0] : row[1],
+              phone: "", name: row[2], total: row[4], debt: debt
+            });
+          }
+        }
+        result = { phaithu: phaithu, phaitra: phaitra };
+      }
+      else if (module === 'thuchi') {
+        const sheet = ss.getSheetByName("Thu Chi");
+        const values = sheet.getDataRange().getValues();
+        const data = [];
+        for (let i = 1; i < values.length; i++) {
+          let row = values[i];
+          if (!row[0]) continue;
+          let rowDate = row[1] instanceof Date ? row[1] : new Date(row[1]);
+          if (isNaN(rowDate)) continue;
+          data.push({
+            id: row[0], date: rowDate.toISOString().split('T')[0],
+            expenseContent: row[2] || "", expenseAmount: row[3] || 0,
+            incomeContent: row[4] || "", incomeAmount: row[5] || 0,
+            personName: row[6] || "", creatorName: row[7] || ""
+          });
+        }
+        result = { data: data };
+      }
+
+      if (Object.keys(result).length > 0) {
+        requests.push({
+          url: FIREBASE_URL + module + '.json',
+          method: 'put',
+          contentType: 'application/json',
+          payload: JSON.stringify(result)
+        });
+      }
+    });
+
+    if (requests.length > 0) {
+      UrlFetchApp.fetchAll(requests);
+    }
+  } catch (e) {
+    Logger.log("Firebase sync error: " + e.message);
+  }
+}
+
+// Chạy hàm này một lần duy nhất từ Apps Script Editor để đồng bộ toàn bộ dữ liệu cũ lên Firebase
+function initialFirebaseSync() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  triggerFirebaseSync(ss, ['thuchi', 'banhang', 'nhapkho', 'khohang', 'khachhang', 'congno']);
+  Logger.log("Đồng bộ Firebase thành công!");
+}
