@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import ThuChi from './components/ThuChi';
 import BanHang from './components/BanHang';
@@ -54,40 +54,37 @@ export default function App() {
   };
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route 
-          path="/login" 
-          element={!user ? <Login onLoginSuccess={handleLoginSuccess} /> : <Navigate to={getDefaultRoute()} replace />} 
-        />
-        
-        {user ? (
-          <Route path="/" element={<MainLayout user={user} onLogout={handleLogout} />}>
+    <Router>
+      <ErrorBoundary>
+        <Routes>
+          <Route 
+            path="/login" 
+            element={user ? <Navigate to={getDefaultRoute()} replace /> : <Login onLoginSuccess={handleLoginSuccess} />} 
+          />
+          
+          <Route path="/" element={user ? <MainLayout user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />}>
             <Route index element={
-              <ErrorBoundary key="dashboard"><Dashboard /></ErrorBoundary>
+              hasAccess(['admin', 'quản lý']) ? <Dashboard /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="thuchi" element={
-              <ErrorBoundary key="thuchi"><ThuChi /></ErrorBoundary>
+              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'thuchi']) ? <ThuChi /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="banhang" element={
-              <ErrorBoundary key="banhang"><BanHang /></ErrorBoundary>
+              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'kho']) ? <BanHang /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="nhapkho" element={
-              <ErrorBoundary key="nhapkho"><KhoHang /></ErrorBoundary>
+              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'kho']) ? <KhoHang /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="congno" element={
-              <ErrorBoundary key="congno"><CongNo /></ErrorBoundary>
+              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'thuchi']) ? <CongNo /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="khachhang" element={
-              <ErrorBoundary key="khachhang"><KhachHang /></ErrorBoundary>
+              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'thuchi', 'kho']) ? <KhachHang /> : <Navigate to={getDefaultRoute()} replace />
             } />
-            {/* Catch all route - redirect to default */}
             <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
           </Route>
-        ) : (
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        )}
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </ErrorBoundary>
+    </Router>
   );
 }
