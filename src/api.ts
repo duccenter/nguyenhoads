@@ -1,10 +1,44 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaLA_C8l31fG4O2AlfQw1ER5ucQ7c-m_Xl_XhQHRx7anCddo9NdO_Odd-joaIphfqw5g/exec';
+const FIREBASE_URL = 'https://nguyenhoads-app-default-rtdb.asia-southeast1.firebasedatabase.app/';
 
 export async function fetchData(module: string, params: Record<string, string | number> = {}) {
   try {
+    // 1. Try to fetch from Firebase for blazing fast reads
+    if (module !== 'auth' && module !== 'dashboard') {
+      try {
+        const fbRes = await fetch(`${FIREBASE_URL}${module}.json`);
+        if (fbRes.ok) {
+          const fbData = await fbRes.json();
+          let returnData = null;
+          
+          if (fbData && fbData.data) {
+            returnData = fbData;
+          } else if (fbData && (fbData.products || fbData.phaithu)) {
+            returnData = fbData;
+          }
+
+          if (returnData) {
+            // Apply filtering for thuchi
+            if (module === 'thuchi' && params.month && params.year && returnData.data) {
+              const month = Number(params.month);
+              const year = Number(params.year);
+              returnData.data = returnData.data.filter((row: any) => {
+                if (!row.date) return false;
+                const d = new Date(row.date);
+                return (d.getMonth() + 1 === month) && (d.getFullYear() === year);
+              });
+            }
+            return returnData;
+          }
+        }
+      } catch (fbErr) {
+        console.warn("Firebase fetch failed, falling back to Apps Script", fbErr);
+      }
+    }
+
+    // 2. Fallback to Google Apps Script if Firebase fails or is empty
     const url = new URL(SCRIPT_URL);
     url.searchParams.append('module', module);
-    
     Object.entries(params).forEach(([key, value]) => {
       url.searchParams.append(key, String(value));
     });

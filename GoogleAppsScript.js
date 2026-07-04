@@ -253,10 +253,34 @@ function doGet(e) {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const out = doPostInner(e, payload, ss);
+    const resString = out.getContent();
+    
+    try {
+      const resObj = JSON.parse(resString);
+      if (resObj.success || (resObj.id && !resObj.error)) {
+        const module = payload.module;
+        let modulesToSync = [module];
+        if (module === 'banhang') modulesToSync = ['banhang', 'khachhang', 'khohang', 'congno'];
+        if (module === 'nhapkho') modulesToSync = ['nhapkho', 'khohang', 'congno'];
+        triggerFirebaseSync(ss, modulesToSync);
+      }
+    } catch(err) {
+      Logger.log("JSON Parse error in doPost wrapper: " + err.message);
+    }
+    
+    return ContentService.createTextOutput(resString).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return responseJson({ error: error.message }, 500);
+  }
+}
+
+function doPostInner(e, payload, ss) {
+  try {
     const module = payload.module;
     const action = payload.action;
-    const user = payload.user || "Unknown"; // Tài khoản thực hiện thao tác
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const user = payload.user || "Unknown";
 
     if (module === 'auth') {
       const sheetTK = ss.getSheetByName("Tài Khoản");
