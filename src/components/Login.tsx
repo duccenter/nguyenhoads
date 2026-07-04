@@ -34,55 +34,45 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: (user: any) 
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f1f5f9',
-      padding: '20px'
-    }}>
-      <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '2rem', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ width: '60px', height: '60px', backgroundColor: 'var(--primary-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-            <Lock size={30} color="white" />
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-sky-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-500/30">
+            <Lock size={32} className="text-white" />
           </div>
-          <h2 style={{ color: 'var(--text-color)', margin: 0 }}>Đăng Nhập Hệ Thống</h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '5px' }}>Quản lý ERP Nguyễn Hồ</p>
+          <h2 className="text-2xl font-bold text-slate-800">Đăng Nhập Hệ Thống</h2>
+          <p className="text-slate-500 mt-2 font-medium">ERP Quảng Cáo Nguyễn Hồ</p>
         </div>
 
         {error && (
-          <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '10px', borderRadius: '6px', marginBottom: '1rem', fontSize: '0.9rem', textAlign: 'center' }}>
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm text-center border border-red-100">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Tài khoản</label>
-            <div style={{ position: 'relative' }}>
-              <User size={18} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tài khoản</label>
+            <div className="relative">
+              <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
                 type="text" 
-                className="form-control" 
-                style={{ paddingLeft: '35px' }} 
-                placeholder="Nhập tên đăng nhập"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all text-slate-700"
+                placeholder="Nhập tên đăng nhập..."
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                autoFocus
               />
             </div>
           </div>
-          
-          <div className="form-group">
-            <label className="form-label">Mật khẩu</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mật khẩu</label>
+            <div className="relative">
+              <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
                 type="password" 
-                className="form-control" 
-                style={{ paddingLeft: '35px' }} 
-                placeholder="Nhập mật khẩu"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all text-slate-700"
+                placeholder="Nhập mật khẩu..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -91,13 +81,22 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: (user: any) 
 
           <button 
             type="submit" 
-            className="btn btn-primary" 
-            style={{ width: '100%', padding: '12px', fontSize: '1rem', marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '8px' }}
             disabled={loading}
+            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed mt-2 shadow-lg shadow-sky-500/30"
           >
-            {loading ? "Đang xác thực..." : <><LogIn size={20} /> ĐĂNG NHẬP</>}
+            {loading ? (
+              <span>Đang xử lý...</span>
+            ) : (
+              <>
+                <LogIn size={20} /> ĐĂNG NHẬP
+              </>
+            )}
           </button>
         </form>
+
+        <div className="mt-8 text-center text-sm text-slate-400">
+          <p>&copy; {new Date().getFullYear()} Diticoms. All rights reserved.</p>
+        </div>
       </div>
     </div>
   );
