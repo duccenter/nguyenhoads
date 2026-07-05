@@ -18,12 +18,23 @@ export async function fetchData(module: string, params: Record<string, string | 
           }
 
           if (returnData) {
+            const keysToNormalize = ['data', 'products', 'logs', 'phaithu', 'phaitra'];
+            keysToNormalize.forEach(key => {
+              if (returnData[key]) {
+                let arr = returnData[key];
+                if (!Array.isArray(arr)) {
+                  arr = Object.values(arr);
+                }
+                returnData[key] = arr.filter((item: any) => item !== null);
+              }
+            });
+
             // Apply filtering for thuchi
             if (module === 'thuchi' && params.month && params.year && returnData.data) {
               const month = Number(params.month);
               const year = Number(params.year);
               returnData.data = returnData.data.filter((row: any) => {
-                if (!row.date) return false;
+                if (!row || !row.date) return false;
                 const d = new Date(row.date);
                 return (d.getMonth() + 1 === month) && (d.getFullYear() === year);
               });
