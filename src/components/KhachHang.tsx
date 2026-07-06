@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, X, Save, Edit2 } from 'lucide-react';
+import { Search, UserPlus, X, Save, Edit2, Trash2 } from 'lucide-react';
 import { formatMoney } from '../utils';
 import { fetchData, postData } from '../api';
 
@@ -81,6 +81,24 @@ export default function KhachHang() {
     }
   };
 
+  const handleDeleteCustomer = async (id: string, name: string) => {
+    if (confirm(`Bạn có chắc chắn muốn xóa khách hàng "${name}"?`)) {
+      setLoading(true);
+      try {
+        const res = await postData('khachhang', 'delete', { id });
+        if (res.success) {
+          loadData();
+        } else {
+          alert(res.error || 'Có lỗi xảy ra khi xóa.');
+          setLoading(false);
+        }
+      } catch (err) {
+        alert('Lỗi kết nối!');
+        setLoading(false);
+      }
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -140,13 +158,22 @@ export default function KhachHang() {
                     <td className="px-6 py-4 text-right font-bold text-red-500">{c.debt > 0 ? formatMoney(c.debt) + ' đ' : '-'}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{c.note || '-'}</td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => handleOpenEditModal(c)}
-                        className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors inline-flex"
-                        title="Sửa thông tin"
-                      >
-                        <Edit2 size={16} />
-                      </button>
+                      <div className="flex justify-end gap-1">
+                        <button 
+                          onClick={() => handleOpenEditModal(c)}
+                          className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors inline-flex"
+                          title="Sửa thông tin"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteCustomer(c.id, c.name)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors inline-flex"
+                          title="Xóa khách hàng"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -347,6 +347,13 @@ function doPostInner(e, payload, ss) {
           return responseJson({ success: true });
         }
         return responseJson({ error: 'Không tìm thấy khách hàng' }, 404);
+      } else if (action === 'delete') {
+        const row = getRowById(sheet, payload.id);
+        if (row) {
+          logAudit(ss, user, "Xóa", "Khách Hàng", `Xóa khách hàng ID: ${payload.id}`);
+          return deleteRowById(sheet, payload.id);
+        }
+        return responseJson({ error: 'Không tìm thấy khách hàng để xóa' }, 404);
       }
     }
 
