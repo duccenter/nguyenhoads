@@ -392,10 +392,10 @@ export default function ThuChi() {
       {/* Hidden Print Template */}
       {printRecord && (
         <div id="printable-receipt">
-          <div style={{ padding: '10mm', fontFamily: 'Arial, sans-serif' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #000', paddingBottom: '10px' }}>
-            <div style={{ width: '65%', fontSize: '12px', lineHeight: '1.4' }}>
-              <div style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '14px' }}>Quảng Cáo Nguyễn Hồ</div>
+          <div style={{ padding: '8mm', fontFamily: 'Arial, sans-serif', width: '100%', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #000', paddingBottom: '8px' }}>
+            <div style={{ width: '65%', fontSize: '12px', lineHeight: '1.3' }}>
+              <div style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '13px' }}>Quảng Cáo Nguyễn Hồ</div>
               <div>Địa chỉ: 67 đường 3/2. Phường Vườn Lài</div>
               <div>SĐT: 0933735073 - 0912737074</div>
             </div>
@@ -404,14 +404,14 @@ export default function ThuChi() {
             </div>
           </div>
           
-          <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-            <h1 style={{ margin: '0', fontSize: '20px', textTransform: 'uppercase' }}>
+          <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+              <h1 style={{ margin: '0', fontSize: '18px', textTransform: 'uppercase' }}>
               PHIẾU {printRecord.incomeAmount > 0 ? 'THU' : 'CHI'}
             </h1>
-            <p style={{ margin: '5px 0 0 0', fontStyle: 'italic', fontSize: '12px' }}>Ngày: {format(new Date(printRecord.date), 'dd/MM/yyyy')}</p>
+            <p style={{ margin: '3px 0 0 0', fontStyle: 'italic', fontSize: '12px' }}>Ngày: {format(new Date(printRecord.date), 'dd/MM/yyyy')}</p>
           </div>
           
-          <table style={{ width: '100%', marginBottom: '15px', fontSize: '13px', lineHeight: '1.8' }}>
+          <table style={{ width: '100%', marginBottom: '10px', fontSize: '13px', lineHeight: '1.5' }}>
             <tbody>
               <tr>
                 <td style={{ width: '130px', fontWeight: 'bold', padding: '5px 0' }}>
@@ -445,19 +445,19 @@ export default function ThuChi() {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', textAlign: 'center', fontSize: '12px', pageBreakInside: 'avoid' }}>
             <div style={{ width: '30%' }}>
               <strong>Người Lập Phiếu</strong>
-              <div style={{ margin: '5px 0' }}><small>(Ký, họ tên)</small></div>
-              <div style={{ marginTop: '50px', fontWeight: 'bold' }}>
+              <div style={{ margin: '3px 0' }}><small>(Ký, họ tên)</small></div>
+              <div style={{ marginTop: '40px', fontWeight: 'bold' }}>
                 {printRecord.creatorName || ''}
               </div>
             </div>
             <div style={{ width: '30%' }}>
               <strong>Người Giao</strong>
-              <div style={{ margin: '5px 0' }}><small>(Ký, họ tên)</small></div>
+              <div style={{ margin: '3px 0' }}><small>(Ký, họ tên)</small></div>
             </div>
             <div style={{ width: '30%' }}>
               <strong>Người Nhận</strong>
-              <div style={{ margin: '5px 0' }}><small>(Ký, họ tên)</small></div>
-              <div style={{ marginTop: '50px', fontWeight: 'bold' }}>
+              <div style={{ margin: '3px 0' }}><small>(Ký, họ tên)</small></div>
+              <div style={{ marginTop: '40px', fontWeight: 'bold' }}>
                 {printRecord.personName || ''}
               </div>
             </div>
