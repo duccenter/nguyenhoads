@@ -335,7 +335,10 @@ function doPostInner(e, payload, ss) {
           msg += "- Tổng Chi tháng này: " + formatVND(currentTotalExpense) + "\\n";
           msg += "- <b>CÒN LẠI (TỒN QUỸ): " + formatVND(finalBal) + "</b>";
           sendTelegramMessage(msg);
-        } catch(e) { Logger.log(e); }
+        } catch(e) { 
+          Logger.log(e); 
+          sendTelegramMessage("Lỗi ở Thu Chi: " + e.message);
+        }
         // ----------------------------------------
         
         return responseJson({ success: true, id: newId });
