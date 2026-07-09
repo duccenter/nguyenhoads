@@ -169,6 +169,9 @@ body {
     flex-direction: column-reverse;
     align-items: stretch;
   }
+  .grid-50-50 > * {
+    min-width: 0;
+  }
 }
 
 @media (max-width: 600px) {
