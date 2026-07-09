@@ -21,6 +21,7 @@ const PERMISSIONS = [
 export default function QuanLyTaiKhoan() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -75,6 +76,8 @@ export default function QuanLyTaiKhoan() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     if (!form.username || !form.fullName) {
       alert('Vui lòng điền đủ tên và tài khoản');
       return;
@@ -84,6 +87,7 @@ export default function QuanLyTaiKhoan() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const action = editingId ? 'update' : 'add';
       const payload = { data: { ...form, id: editingId }, id: editingId };
@@ -98,6 +102,8 @@ export default function QuanLyTaiKhoan() {
       }
     } catch (err) {
       alert('Lỗi kết nối');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -199,7 +205,7 @@ export default function QuanLyTaiKhoan() {
               <h3 className="text-xl font-bold text-slate-800">
                 {editingId ? 'Chỉnh Sửa Tài Khoản' : 'Thêm Tài Khoản Mới'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setIsModalOpen(false)} disabled={isSubmitting} className="text-slate-400 hover:text-slate-600 disabled:opacity-50">
                 <X size={24} />
               </button>
             </div>
@@ -210,9 +216,10 @@ export default function QuanLyTaiKhoan() {
                 <input
                   type="text"
                   required
+                  disabled={isSubmitting}
                   value={form.fullName}
                   onChange={e => setForm({...form, fullName: e.target.value})}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
                   placeholder="VD: Nguyễn Văn A"
                 />
               </div>
@@ -221,9 +228,10 @@ export default function QuanLyTaiKhoan() {
                 <input
                   type="text"
                   required
+                  disabled={isSubmitting}
                   value={form.username}
                   onChange={e => setForm({...form, username: e.target.value})}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
                   placeholder="VD: nva"
                 />
               </div>
@@ -234,9 +242,10 @@ export default function QuanLyTaiKhoan() {
                 <input
                   type="password"
                   required={!editingId}
+                  disabled={isSubmitting}
                   value={form.password}
                   onChange={e => setForm({...form, password: e.target.value})}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
                   placeholder="••••••••"
                 />
               </div>
@@ -248,9 +257,10 @@ export default function QuanLyTaiKhoan() {
                     <label key={perm.id} className="flex items-center gap-2 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors">
                       <input
                         type="checkbox"
+                        disabled={isSubmitting}
                         checked={form.permissions.includes(perm.id)}
                         onChange={() => togglePermission(perm.id)}
-                        className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 disabled:opacity-50"
                       />
                       <span className="text-sm font-medium text-slate-700">{perm.label}</span>
                     </label>
@@ -261,16 +271,22 @@ export default function QuanLyTaiKhoan() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 font-medium"
+                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 font-medium disabled:opacity-50"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:bg-indigo-400 transition-colors"
                 >
-                  <Save size={20} /> {editingId ? 'Cập Nhật' : 'Tạo Tài Khoản'}
+                  {isSubmitting ? (
+                    <><RefreshCw className="animate-spin" size={20} /> Đang lưu...</>
+                  ) : (
+                    <><Save size={20} /> {editingId ? 'Cập Nhật' : 'Tạo Tài Khoản'}</>
+                  )}
                 </button>
               </div>
             </form>
