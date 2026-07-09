@@ -304,6 +304,40 @@ function doPostInner(e, payload, ss) {
         if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).sort({column: 2, ascending: true});
         
         logAudit(ss, user, "Thêm Mới", "Thu Chi", `Phiếu mới - Thu: ${d.incomeAmount || 0}, Chi: ${d.expenseAmount || 0}`);
+        
+        // ---- Bắn thông báo Telegram Thu Chi ----
+        try {
+          const mDate = new Date(d.date);
+          const cMonth = mDate.getMonth() + 1;
+          const cYear = mDate.getFullYear();
+          const prevBal = getPreviousBalance(ss, cMonth, cYear);
+          let currentTotalIncome = 0;
+          let currentTotalExpense = 0;
+          const tcData = sheet.getDataRange().getValues();
+          for (let i = 1; i < tcData.length; i++) {
+            let row = tcData[i];
+            if (!row[0]) continue;
+            let rd = row[1] instanceof Date ? row[1] : new Date(row[1]);
+            if (!isNaN(rd) && rd.getMonth() + 1 === cMonth && rd.getFullYear() === cYear) {
+              currentTotalExpense += Number(row[3]) || 0;
+              currentTotalIncome += Number(row[5]) || 0;
+            }
+          }
+          const finalBal = prevBal + currentTotalIncome - currentTotalExpense;
+
+          let msg = "💸 <b>CÓ GIAO DỊCH " + (d.incomeAmount > 0 ? "THU" : "CHI") + " MỚI</b>\\n\\n";
+          msg += "- Số tiền: <b>" + formatVND(d.incomeAmount > 0 ? d.incomeAmount : d.expenseAmount) + "</b>\\n";
+          msg += "- Người " + (d.incomeAmount > 0 ? "nộp" : "nhận") + ": " + (d.personName || "Khách") + "\\n";
+          msg += "- Lý do: " + (d.incomeContent || d.expenseContent) + "\\n\\n";
+          msg += "💰 <b>THỐNG KÊ QUỸ TỚI HIỆN TẠI</b>\\n";
+          msg += "- Dư đầu tháng: " + formatVND(prevBal) + "\\n";
+          msg += "- Tổng Thu tháng này: " + formatVND(currentTotalIncome) + "\\n";
+          msg += "- Tổng Chi tháng này: " + formatVND(currentTotalExpense) + "\\n";
+          msg += "- <b>CÒN LẠI (TỒN QUỸ): " + formatVND(finalBal) + "</b>";
+          sendTelegramMessage(msg);
+        } catch(e) { Logger.log(e); }
+        // ----------------------------------------
+        
         return responseJson({ success: true, id: newId });
       } else if (action === 'delete') {
         const row = getRowById(sheet, payload.id);
@@ -400,6 +434,23 @@ function doPostInner(e, payload, ss) {
           }
         }
         logAudit(ss, user, "Thêm Mới", "Bán Hàng", `Tạo phiếu bán hàng KH ${d.customerName}. Tổng tiền: ${totalAmount}`);
+        
+        // ---- Bắn thông báo Telegram Xuất Hàng ----
+        try {
+          let msg = "🚀 <b>CÓ ĐƠN BÁN HÀNG MỚI</b>\\n\\n";
+          msg += "- Khách hàng: <b>" + d.customerName + "</b>\\n";
+          msg += "- SĐT: " + d.phone + "\\n";
+          msg += "- Tổng tiền đơn hàng: <b>" + formatVND(totalAmount) + "</b>\\n";
+          msg += "- Khách đã trả: " + formatVND(d.paidAmount) + "\\n";
+          if (debt > 0) msg += "- <b>Khách còn nợ: " + formatVND(debt) + "</b>\\n";
+          msg += "\\n📦 <b>Chi tiết mặt hàng:</b>\\n";
+          for (let item of d.items) {
+            msg += "- " + item.productName + " (x" + item.qty + ") = " + formatVND(item.price * item.qty) + "\\n";
+          }
+          sendTelegramMessage(msg);
+        } catch(e) {}
+        // ----------------------------------------
+        
         return responseJson({ success: true, id: newId });
       }
       else if (action === 'delete') {
@@ -533,7 +584,23 @@ function doPostInner(e, payload, ss) {
           }
         }
         
-        logAudit(ss, user, "Thêm Mới", "Nhập Kho", `Nhập hàng từ NCC ${d.supplier}. Tổng tiền: ${totalAmount}`);
+        logAudit(ss, user, "Thêm Mới", "Nhập Kho", `Tạo phiếu nhập kho từ ${d.supplier}. Tổng tiền: ${totalAmount}`);
+        
+        // ---- Bắn thông báo Telegram Nhập Hàng ----
+        try {
+          let msg = "📥 <b>CÓ PHIẾU NHẬP HÀNG MỚI</b>\\n\\n";
+          msg += "- Nhà cung cấp: <b>" + d.supplier + "</b>\\n";
+          msg += "- Tổng tiền thanh toán: <b>" + formatVND(totalAmount) + "</b>\\n";
+          msg += "- Đã trả: " + formatVND(d.paidAmount) + "\\n";
+          if (debt > 0) msg += "- <b>Còn nợ NCC: " + formatVND(debt) + "</b>\\n";
+          msg += "\\n📦 <b>Chi tiết nhập:</b>\\n";
+          for (let item of d.items) {
+            msg += "- " + item.productName + " (x" + item.qty + ")\\n";
+          }
+          sendTelegramMessage(msg);
+        } catch(e) {}
+        // ----------------------------------------
+        
         return responseJson({ success: true, id: newId });
       }
       else if (action === 'delete') {
@@ -842,4 +909,101 @@ function initialFirebaseSync() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   triggerFirebaseSync(ss, ['thuchi', 'banhang', 'nhapkho', 'khohang', 'khachhang', 'congno']);
   Logger.log("Đồng bộ Firebase thành công!");
+}
+
+// ---------------- TELEGRAM BOT ----------------
+const TELEGRAM_BOT_TOKEN = '8709485898:AAFn2zJutybiMWhRkrBHimr2oOYmP19Kn0g';
+const TELEGRAM_CHAT_ID = '-100443954270';
+
+function sendTelegramMessage(text) {
+  try {
+    const url = 'https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage';
+    const payload = {
+      chat_id: TELEGRAM_CHAT_ID,
+      text: text,
+      parse_mode: 'HTML'
+    };
+    UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+  } catch(e) {
+    Logger.log("Telegram Error: " + e.message);
+  }
+}
+
+function formatVND(num) {
+  if (!num) return '0 đ';
+  return Number(num).toLocaleString('vi-VN') + ' đ';
+}
+
+function dailyReport() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const dateObj = new Date(todayStr);
+  
+  // 1. Thống kê Thu Chi
+  let totalIncome = 0;
+  let totalExpense = 0;
+  let previousBalance = 0; 
+  const tcSheet = ss.getSheetByName("Thu Chi");
+  if (tcSheet) {
+    const tcValues = tcSheet.getDataRange().getValues();
+    for (let i = 1; i < tcValues.length; i++) {
+      let row = tcValues[i];
+      if (!row[0]) continue;
+      let rowDate = row[1] instanceof Date ? row[1] : new Date(row[1]);
+      if (isNaN(rowDate)) continue;
+      
+      let exp = Number(row[3]) || 0;
+      let inc = Number(row[5]) || 0;
+      
+      if (rowDate.toISOString().split('T')[0] === todayStr) {
+        totalExpense += exp;
+        totalIncome += inc;
+      } else if (rowDate < new Date(todayStr)) {
+        previousBalance += inc - exp;
+      }
+    }
+  }
+  
+  // 2. Thống kê Bán Hàng
+  let salesCount = 0;
+  let salesRevenue = 0;
+  let salesDebt = 0;   
+  const bhSheet = ss.getSheetByName("Bán Hàng");
+  if (bhSheet) {
+    const bhValues = bhSheet.getDataRange().getValues();
+    for (let i = 1; i < bhValues.length; i++) {
+      let row = bhValues[i];
+      if (!row[0]) continue;
+      let rowDate = row[1] instanceof Date ? row[1] : new Date(row[1]);
+      if (isNaN(rowDate)) continue;
+      
+      if (rowDate.toISOString().split('T')[0] === todayStr) {
+        salesCount++;
+        salesRevenue += (Number(row[6]) || 0);
+        salesDebt += (Number(row[7]) || 0);   
+      }
+    }
+  }
+
+  let finalBalance = previousBalance + totalIncome - totalExpense;
+
+  let msg = "📊 <b>BÁO CÁO TỔNG KẾT NGÀY " + todayStr.split('-').reverse().join('/') + "</b>\n\n";
+  msg += "📈 <b>HOẠT ĐỘNG THU / CHI</b>\n";
+  msg += "- Dư đầu kỳ: " + formatVND(previousBalance) + "\n";
+  msg += "- Tổng Thu trong ngày: <b>" + formatVND(totalIncome) + "</b>\n";
+  msg += "- Tổng Chi trong ngày: <b>" + formatVND(totalExpense) + "</b>\n";
+  msg += "- Dư cuối ngày (Hiện tại quỹ): <b>" + formatVND(finalBalance) + "</b>\n\n";
+  
+  msg += "🛒 <b>HOẠT ĐỘNG BÁN HÀNG</b>\n";
+  msg += "- Số đơn hàng xuất ra: <b>" + salesCount + "</b> đơn\n";
+  msg += "- Tiền thu từ khách: <b>" + formatVND(salesRevenue) + "</b>\n";
+  msg += "- Công nợ phát sinh: <b>" + formatVND(salesDebt) + "</b>\n";
+
+  sendTelegramMessage(msg);
 }
