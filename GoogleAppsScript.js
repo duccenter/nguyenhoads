@@ -947,7 +947,7 @@ function initialFirebaseSync() {
 
 // ---------------- TELEGRAM BOT ----------------
 const TELEGRAM_BOT_TOKEN = '8709485898:AAFn2zJutybiMWhRkrBHimr2oOYmP19Kn0g';
-const TELEGRAM_CHAT_ID = '-100443954270';
+const TELEGRAM_CHAT_ID = '-1004439454270';
 
 function sendTelegramMessage(text) {
   try {
