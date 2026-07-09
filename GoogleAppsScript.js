@@ -329,11 +329,11 @@ function doPostInner(e, payload, ss) {
         sheetTK.appendRow([newId, d.username, d.password, d.role || "staff", d.fullName, permsStr]);
         
         try {
-          let msg = "👤 <b>TÀI KHOẢN NHÂN VIÊN MỚI</b>\\n\\n";
-          msg += "- Họ tên: " + d.fullName + "\\n";
-          msg += "- Tên đăng nhập: <b>" + d.username + "</b>\\n";
-          msg += "- Mật khẩu: <b>" + d.password + "</b>\\n";
-          msg += "- Quyền truy cập: " + (d.permissions || []).join(", ") + "\\n";
+          let msg = "👤 <b>TÀI KHOẢN NHÂN VIÊN MỚI</b>\n\n";
+          msg += "🔹 Họ tên: " + d.fullName + "\n";
+          msg += "🔹 Tên đăng nhập: <b>" + d.username + "</b>\n";
+          msg += "🔹 Mật khẩu: <b>" + d.password + "</b>\n";
+          msg += "🔹 Quyền truy cập: " + (d.permissions || []).join(", ") + "\n";
           sendTelegramMessage(msg);
         } catch(e) {}
         
@@ -349,6 +349,16 @@ function doPostInner(e, payload, ss) {
             if (d.password) sheetTK.getRange(i + 1, 3).setValue(d.password);
             sheetTK.getRange(i + 1, 5).setValue(d.fullName);
             sheetTK.getRange(i + 1, 6).setValue(JSON.stringify(d.permissions || []));
+            
+            try {
+              let msg = "✏️ <b>CẬP NHẬT TÀI KHOẢN</b>\n\n";
+              msg += "🔹 Họ tên: " + d.fullName + "\n";
+              msg += "🔹 Tên đăng nhập: <b>" + d.username + "</b>\n";
+              if (d.password) msg += "🔹 Mật khẩu mới: <b>" + d.password + "</b>\n";
+              msg += "🔹 Quyền truy cập: " + (d.permissions || []).join(", ") + "\n";
+              sendTelegramMessage(msg);
+            } catch(e) {}
+
             return responseJson({ success: true });
           }
         }
@@ -360,7 +370,16 @@ function doPostInner(e, payload, ss) {
         const tkData = sheetTK.getDataRange().getValues();
         for (let i = 1; i < tkData.length; i++) {
           if (tkData[i][0] === id) {
+            const deletedUsername = tkData[i][1];
+            const deletedName = tkData[i][4];
             sheetTK.deleteRow(i + 1);
+            
+            try {
+              let msg = "🚫 <b>XÓA TÀI KHOẢN</b>\n\n";
+              msg += "🔹 Tài khoản <b>" + deletedUsername + "</b> (" + deletedName + ") đã bị xóa khỏi hệ thống!\n";
+              sendTelegramMessage(msg);
+            } catch(e) {}
+            
             return responseJson({ success: true });
           }
         }
