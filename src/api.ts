@@ -1,4 +1,4 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2HuR-ZQ1eDtNasTnS57_zSNsZZt8vG300zcVLYYUxwFWiiBd9Ja6SQL2P6d79h3hb9A/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6JXFUOehayujPyLRoQQspj30MdgfGHszdsdmoAtSaVGvXY9t5YL-eLrQu1zcQqdeiMg/exec';
 const FIREBASE_URL = 'https://nguyenhoads-app-default-rtdb.asia-southeast1.firebasedatabase.app/';
 
 export async function fetchData(module: string, params: Record<string, string | number> = {}) {
