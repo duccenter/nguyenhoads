@@ -299,7 +299,7 @@ export default function BanHang() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
                 <div className="form-group" style={{ flex: 1 }}>
                   <label className="form-label">Số điện thoại Khách</label>
                   <input 
