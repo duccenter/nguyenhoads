@@ -86,7 +86,7 @@ export default function QuanLyTaiKhoan() {
 
     try {
       const action = editingId ? 'update' : 'add';
-      const payload = { ...form, id: editingId };
+      const payload = { data: { ...form, id: editingId }, id: editingId };
       const res = await postData('users', action, payload);
       
       if (res.success) {
