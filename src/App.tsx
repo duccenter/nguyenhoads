@@ -9,11 +9,13 @@ import KhachHang from './components/KhachHang';
 import Login from './components/Login';
 import ErrorBoundary from './components/ErrorBoundary';
 import MainLayout from './components/layout/MainLayout';
+import QuanLyTaiKhoan from './components/QuanLyTaiKhoan';
 
 interface User {
   username: string;
   role: string;
   fullName: string;
+  permissions?: string[];
 }
 
 export default function App() {
@@ -48,21 +50,25 @@ export default function App() {
   const getDefaultRoute = () => {
     if (!user) return '/login';
     if (user.role === 'admin') return '/';
+    if (user.permissions && user.permissions.length > 0) return `/${user.permissions[0]}`;
     const uname = user.username?.toLowerCase();
     if (uname === 'nv_03' || uname === 'thuchi') return '/thuchi';
     return '/banhang';
   };
 
-  const hasAccess = (roles: string[]) => {
+  const hasAccess = (permId: string) => {
     if (!user) return false;
     if (user.role === 'admin') return true;
+    if (user.permissions && user.permissions.includes(permId)) return true;
     
+    // Legacy support
     const uname = user.username?.toLowerCase();
-    if ((uname === 'nv_02' || uname === 'kho') && roles.includes('kho')) return true;
-    if ((uname === 'nv_03' || uname === 'thuchi') && roles.includes('thuchi')) return true;
+    if ((uname === 'nv_02' || uname === 'kho') && ['banhang', 'nhapkho', 'khachhang'].includes(permId)) return true;
+    if ((uname === 'nv_03' || uname === 'thuchi') && ['thuchi', 'congno', 'khachhang'].includes(permId)) return true;
     
-    return roles.some(r => user.role?.toLowerCase().includes(r));
+    return false;
   };
+
   return (
     <Router>
       <ErrorBoundary>
@@ -74,22 +80,25 @@ export default function App() {
           
           <Route path="/" element={user ? <MainLayout user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />}>
             <Route index element={
-              hasAccess(['admin', 'quản lý']) ? <Dashboard /> : <Navigate to={getDefaultRoute()} replace />
+              user?.role === 'admin' ? <Dashboard /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="thuchi" element={
-              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'thuchi']) ? <ThuChi /> : <Navigate to={getDefaultRoute()} replace />
+              hasAccess('thuchi') ? <ThuChi /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="banhang" element={
-              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'kho']) ? <BanHang /> : <Navigate to={getDefaultRoute()} replace />
+              hasAccess('banhang') ? <BanHang /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="nhapkho" element={
-              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'kho']) ? <KhoHang /> : <Navigate to={getDefaultRoute()} replace />
+              hasAccess('nhapkho') ? <KhoHang /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="congno" element={
-              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'thuchi']) ? <CongNo /> : <Navigate to={getDefaultRoute()} replace />
+              hasAccess('congno') ? <CongNo /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="khachhang" element={
-              hasAccess(['admin', 'staff', 'nhanvien', 'nhân viên', 'thuchi', 'kho']) ? <KhachHang /> : <Navigate to={getDefaultRoute()} replace />
+              hasAccess('khachhang') ? <KhachHang /> : <Navigate to={getDefaultRoute()} replace />
+            } />
+            <Route path="taikhoan" element={
+              user?.role === 'admin' ? <QuanLyTaiKhoan /> : <Navigate to={getDefaultRoute()} replace />
             } />
             <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
           </Route>

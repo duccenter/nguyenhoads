@@ -1,10 +1,11 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Wallet, ShoppingCart, UserCheck, Package, Users, BarChart3, LogOut } from 'lucide-react';
+import { LayoutDashboard, Wallet, ShoppingCart, UserCheck, Package, Users, BarChart3, LogOut, Shield } from 'lucide-react';
 
 interface User {
   username: string;
   role: string;
   fullName: string;
+  permissions?: string[];
 }
 
 interface MainLayoutProps {
@@ -22,20 +23,21 @@ export default function MainLayout({ user, onLogout }: MainLayoutProps) {
     { id: 'nhapkho', path: '/nhapkho', label: 'Kho', icon: Package, roles: ['admin', 'staff', 'nhanvien', 'nhân viên'] },
     { id: 'congno', path: '/congno', label: 'Công Nợ', icon: UserCheck, roles: ['admin', 'staff', 'nhanvien', 'nhân viên'] },
     { id: 'khachhang', path: '/khachhang', label: 'Khách Hàng', icon: Users, roles: ['admin', 'staff', 'nhanvien', 'nhân viên'] },
+    { id: 'taikhoan', path: '/taikhoan', label: 'Quản Lý TK', icon: Shield, roles: ['admin'] },
   ] as const;
 
   const allowedNavItems = allNavItems.filter(item => {
     if (user.role === 'admin') return true;
+    if (item.id === 'taikhoan' || item.id === 'dashboard') return false;
     
+    if (user.permissions && user.permissions.includes(item.id)) return true;
+    
+    // Legacy support
     const uname = user.username?.toLowerCase();
-    if (uname === 'nv_02' || uname === 'kho') {
-      return ['banhang', 'nhapkho', 'khachhang'].includes(item.id);
-    }
-    if (uname === 'nv_03' || uname === 'thuchi') {
-      return ['thuchi', 'congno', 'khachhang'].includes(item.id);
-    }
+    if ((uname === 'nv_02' || uname === 'kho') && ['banhang', 'nhapkho', 'khachhang'].includes(item.id)) return true;
+    if ((uname === 'nv_03' || uname === 'thuchi') && ['thuchi', 'congno', 'khachhang'].includes(item.id)) return true;
     
-    return item.roles.some(r => user.role?.toLowerCase().includes(r));
+    return false;
   });
 
   return (

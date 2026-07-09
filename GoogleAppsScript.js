@@ -79,6 +79,26 @@ function doGet(e) {
       return responseJson({ error: 'Sử dụng POST để đăng nhập' }, 400);
     }
 
+    if (module === 'users') {
+      const sheetTK = ss.getSheetByName("Tài Khoản");
+      if (!sheetTK) return responseJson({ data: [] });
+      const tkData = sheetTK.getDataRange().getValues();
+      const users = [];
+      for (let i = 1; i < tkData.length; i++) {
+        if (!tkData[i][0]) continue;
+        let perms = [];
+        try { perms = JSON.parse(tkData[i][5]); } catch(e) {}
+        users.push({
+          id: tkData[i][0],
+          username: tkData[i][1],
+          role: tkData[i][3],
+          fullName: tkData[i][4],
+          permissions: perms
+        });
+      }
+      return responseJson({ data: users });
+    }
+
     if (module === 'thuchi') {
       const month = e.parameter.month;
       const year = e.parameter.year;
@@ -287,10 +307,65 @@ function doPostInner(e, payload, ss) {
       const tkData = sheetTK.getDataRange().getValues();
       for (let i = 1; i < tkData.length; i++) {
         if (tkData[i][1] === payload.username && tkData[i][2] === payload.password) {
-          return responseJson({ success: true, user: { username: tkData[i][1], role: tkData[i][3], fullName: tkData[i][4] } });
+          let perms = [];
+          try { perms = JSON.parse(tkData[i][5] || "[]"); } catch(e) {}
+          return responseJson({ success: true, user: { id: tkData[i][0], username: tkData[i][1], role: tkData[i][3], fullName: tkData[i][4], permissions: perms } });
         }
       }
       return responseJson({ success: false, error: 'Sai tài khoản hoặc mật khẩu' }, 401);
+    }
+
+    if (module === 'users') {
+      let sheetTK = ss.getSheetByName("Tài Khoản");
+      if (!sheetTK) {
+        sheetTK = ss.insertSheet("Tài Khoản");
+        sheetTK.appendRow(["ID", "Username", "Password", "Role", "FullName", "Permissions"]);
+      }
+      
+      if (action === 'add') {
+        const d = payload.data;
+        const newId = generateId();
+        const permsStr = JSON.stringify(d.permissions || []);
+        sheetTK.appendRow([newId, d.username, d.password, d.role || "staff", d.fullName, permsStr]);
+        
+        try {
+          let msg = "👤 <b>TÀI KHOẢN NHÂN VIÊN MỚI</b>\\n\\n";
+          msg += "- Họ tên: " + d.fullName + "\\n";
+          msg += "- Tên đăng nhập: <b>" + d.username + "</b>\\n";
+          msg += "- Mật khẩu: <b>" + d.password + "</b>\\n";
+          msg += "- Quyền truy cập: " + (d.permissions || []).join(", ") + "\\n";
+          sendTelegramMessage(msg);
+        } catch(e) {}
+        
+        return responseJson({ success: true, id: newId });
+      }
+      
+      if (action === 'update') {
+        const d = payload.data;
+        const tkData = sheetTK.getDataRange().getValues();
+        for (let i = 1; i < tkData.length; i++) {
+          if (tkData[i][0] === d.id) {
+            sheetTK.getRange(i + 1, 2).setValue(d.username);
+            if (d.password) sheetTK.getRange(i + 1, 3).setValue(d.password);
+            sheetTK.getRange(i + 1, 5).setValue(d.fullName);
+            sheetTK.getRange(i + 1, 6).setValue(JSON.stringify(d.permissions || []));
+            return responseJson({ success: true });
+          }
+        }
+        return responseJson({ success: false, error: 'Không tìm thấy user' }, 404);
+      }
+      
+      if (action === 'delete') {
+        const id = payload.id;
+        const tkData = sheetTK.getDataRange().getValues();
+        for (let i = 1; i < tkData.length; i++) {
+          if (tkData[i][0] === id) {
+            sheetTK.deleteRow(i + 1);
+            return responseJson({ success: true });
+          }
+        }
+        return responseJson({ success: false, error: 'Không tìm thấy user' }, 404);
+      }
     }
 
     if (module === 'thuchi') {
