@@ -165,7 +165,20 @@ body {
 
 @media (max-width: 1200px) {
   .grid-50-50 {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-card {
+    padding: 1rem;
+  }
+  .summary-amount {
+    font-size: 1.25rem;
+  }
+  .summary-title {
+    font-size: 0.8rem;
   }
 }
 

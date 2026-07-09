@@ -96,16 +96,17 @@ export default function BanHang() {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], searchVal: val };
     
-    const p = products.find(prod => `${prod.code} - ${prod.name}` === val || prod.code === val || prod.name === val);
-    if (p) {
-      newItems[index].productId = p.id;
-      newItems[index].code = p.code;
-      newItems[index].name = p.name;
-      newItems[index].price = p.price;
-      newItems[index].importPrice = p.importPrice || 0;
-      newItems[index].searchVal = `${p.code} - ${p.name}`;
+    const matched = products.find(p => `${p.code} - ${p.name}` === val);
+    if (matched) {
+      newItems[index].productId = matched.id;
+      newItems[index].code = matched.code;
+      newItems[index].name = matched.name;
+      newItems[index].price = matched.price;
+      newItems[index].importPrice = matched.importPrice || 0;
+      newItems[index].searchVal = `${matched.code} - ${matched.name}`;
     } else {
       newItems[index].productId = '';
+      newItems[index].name = val;
     }
     setItems(newItems);
   };
@@ -128,7 +129,7 @@ export default function BanHang() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone || !customerName || items.some(i => !i.productId || i.qty <= 0)) {
+    if (!phone || !customerName || items.some(i => (!i.productId && !i.name && !i.searchVal) || i.qty <= 0)) {
       alert("Vui lòng điền đầy đủ thông tin khách hàng và sản phẩm hợp lệ.");
       return;
     }
@@ -342,24 +343,25 @@ export default function BanHang() {
                 <label className="form-label">Chi tiết Đơn Hàng</label>
                 {items.map((item, index) => (
                   <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'flex-start' }}>
-                    <div style={{ flex: 2 }}>
+                    <div style={{ flex: 3 }}>
                       <input 
                         type="text" 
                         className="form-control" 
-                        placeholder="Nhập mã hoặc tên sản phẩm..."
+                        placeholder="Nhập mã, tên hoặc tự gõ hàng ngoài..."
                         list={`product-list-${index}`}
-                        value={item.searchVal !== undefined ? item.searchVal : (item.code ? `${item.code} - ${item.name}` : '')}
+                        value={item.searchVal !== undefined ? item.searchVal : (item.code ? `${item.code} - ${item.name}` : item.name)}
                         onChange={(e) => handleProductSearch(index, e.target.value)}
                         required
+                        style={{ fontSize: '1.1rem', padding: '0.6rem' }}
                       />
                       <datalist id={`product-list-${index}`}>
                         {products.map(p => (
                           <option key={p.id} value={`${p.code} - ${p.name}`}>Tồn: {p.stock}</option>
                         ))}
                       </datalist>
-                      {!item.productId && item.searchVal && (
-                        <small style={{ color: 'var(--expense-color)', display: 'block', marginTop: '4px' }}>
-                          * Không tìm thấy sản phẩm hợp lệ
+                      {!item.productId && (item.searchVal || item.name) && (
+                        <small style={{ color: 'var(--income-color)', display: 'block', marginTop: '4px' }}>
+                          * Hàng nhập ngoài (Không trừ Tồn kho)
                         </small>
                       )}
                     </div>

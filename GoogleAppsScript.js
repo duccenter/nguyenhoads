@@ -419,14 +419,14 @@ function doPostInner(e, payload, ss) {
           }
           const finalBal = prevBal + currentTotalIncome - currentTotalExpense;
 
-          let msg = "💸 <b>CÓ GIAO DỊCH " + (d.incomeAmount > 0 ? "THU" : "CHI") + " MỚI</b>\\n\\n";
-          msg += "- Số tiền: <b>" + formatVND(d.incomeAmount > 0 ? d.incomeAmount : d.expenseAmount) + "</b>\\n";
-          msg += "- Người " + (d.incomeAmount > 0 ? "nộp" : "nhận") + ": " + (d.personName || "Khách") + "\\n";
-          msg += "- Lý do: " + (d.incomeContent || d.expenseContent) + "\\n\\n";
-          msg += "💰 <b>THỐNG KÊ QUỸ TỚI HIỆN TẠI</b>\\n";
-          msg += "- Dư đầu tháng: " + formatVND(prevBal) + "\\n";
-          msg += "- Tổng Thu tháng này: " + formatVND(currentTotalIncome) + "\\n";
-          msg += "- Tổng Chi tháng này: " + formatVND(currentTotalExpense) + "\\n";
+          let msg = "💸 <b>CÓ GIAO DỊCH " + (d.incomeAmount > 0 ? "THU" : "CHI") + " MỚI</b>\n\n";
+          msg += "- Số tiền: <b>" + formatVND(d.incomeAmount > 0 ? d.incomeAmount : d.expenseAmount) + "</b>\n";
+          msg += "- Người " + (d.incomeAmount > 0 ? "nộp" : "nhận") + ": " + (d.personName || "Khách") + "\n";
+          msg += "- Lý do: " + (d.incomeContent || d.expenseContent) + "\n\n";
+          msg += "💰 <b>THỐNG KÊ QUỸ TỚI HIỆN TẠI</b>\n";
+          msg += "- Dư đầu tháng: " + formatVND(prevBal) + "\n";
+          msg += "- Tổng Thu tháng này: " + formatVND(currentTotalIncome) + "\n";
+          msg += "- Tổng Chi tháng này: " + formatVND(currentTotalExpense) + "\n";
           msg += "- <b>CÒN LẠI (TỒN QUỸ): " + formatVND(finalBal) + "</b>";
           sendTelegramMessage(msg);
         } catch(e) { 
@@ -443,9 +443,9 @@ function doPostInner(e, payload, ss) {
            
            // ---- Bắn thông báo Telegram Xóa Thu Chi ----
            try {
-             let msg = "❌ <b>MỘT GIAO DỊCH VỪA BỊ XÓA</b>\\n\\n";
-             msg += "- Người xóa: " + user + "\\n";
-             msg += "- ID phiếu: " + payload.id + "\\n";
+             let msg = "❌ <b>MỘT GIAO DỊCH VỪA BỊ XÓA</b>\n\n";
+             msg += "- Người xóa: " + user + "\n";
+             msg += "- ID phiếu: " + payload.id + "\n";
              sendTelegramMessage(msg);
            } catch(e) {}
            // ----------------------------------------
@@ -544,15 +544,15 @@ function doPostInner(e, payload, ss) {
         
         // ---- Bắn thông báo Telegram Xuất Hàng ----
         try {
-          let msg = "🚀 <b>CÓ ĐƠN BÁN HÀNG MỚI</b>\\n\\n";
-          msg += "- Khách hàng: <b>" + d.customerName + "</b>\\n";
-          msg += "- SĐT: " + d.phone + "\\n";
-          msg += "- Tổng tiền đơn hàng: <b>" + formatVND(totalAmount) + "</b>\\n";
-          msg += "- Khách đã trả: " + formatVND(d.paidAmount) + "\\n";
-          if (debt > 0) msg += "- <b>Khách còn nợ: " + formatVND(debt) + "</b>\\n";
-          msg += "\\n📦 <b>Chi tiết mặt hàng:</b>\\n";
+          let msg = "🚀 <b>CÓ ĐƠN BÁN HÀNG MỚI</b>\n\n";
+          msg += "- Khách hàng: <b>" + d.customerName + "</b>\n";
+          msg += "- SĐT: " + d.phone + "\n";
+          msg += "- Tổng tiền đơn hàng: <b>" + formatVND(totalAmount) + "</b>\n";
+          msg += "- Khách đã trả: " + formatVND(d.paidAmount) + "\n";
+          if (debt > 0) msg += "- <b>Khách còn nợ: " + formatVND(debt) + "</b>\n";
+          msg += "\n📦 <b>Chi tiết mặt hàng:</b>\n";
           for (let item of d.items) {
-            msg += "- " + item.productName + " (x" + item.qty + ") = " + formatVND(item.price * item.qty) + "\\n";
+            msg += "- " + item.productName + " (x" + item.qty + ") = " + formatVND(item.price * item.qty) + "\n";
           }
           sendTelegramMessage(msg);
         } catch(e) {}
@@ -589,10 +589,10 @@ function doPostInner(e, payload, ss) {
           
           // ---- Bắn thông báo Telegram Xóa Đơn Hàng ----
           try {
-            let msg = "❌ <b>MỘT ĐƠN BÁN HÀNG VỪA BỊ XÓA</b>\\n\\n";
-            msg += "- Khách hàng: " + customerName + "\\n";
-            msg += "- Giá trị đơn: " + formatVND(totalAmount) + "\\n";
-            msg += "- Người xóa: " + user + "\\n";
+            let msg = "❌ <b>MỘT ĐƠN BÁN HÀNG VỪA BỊ XÓA</b>\n\n";
+            msg += "- Khách hàng: " + customerName + "\n";
+            msg += "- Giá trị đơn: " + formatVND(totalAmount) + "\n";
+            msg += "- Người xóa: " + user + "\n";
             sendTelegramMessage(msg);
           } catch(e) {}
           // ----------------------------------------
@@ -706,14 +706,14 @@ function doPostInner(e, payload, ss) {
         
         // ---- Bắn thông báo Telegram Nhập Hàng ----
         try {
-          let msg = "📥 <b>CÓ PHIẾU NHẬP HÀNG MỚI</b>\\n\\n";
-          msg += "- Nhà cung cấp: <b>" + d.supplier + "</b>\\n";
-          msg += "- Tổng tiền thanh toán: <b>" + formatVND(totalAmount) + "</b>\\n";
-          msg += "- Đã trả: " + formatVND(d.paidAmount) + "\\n";
-          if (debt > 0) msg += "- <b>Còn nợ NCC: " + formatVND(debt) + "</b>\\n";
-          msg += "\\n📦 <b>Chi tiết nhập:</b>\\n";
+          let msg = "📥 <b>CÓ PHIẾU NHẬP HÀNG MỚI</b>\n\n";
+          msg += "- Nhà cung cấp: <b>" + d.supplier + "</b>\n";
+          msg += "- Tổng tiền thanh toán: <b>" + formatVND(totalAmount) + "</b>\n";
+          msg += "- Đã trả: " + formatVND(d.paidAmount) + "\n";
+          if (debt > 0) msg += "- <b>Còn nợ NCC: " + formatVND(debt) + "</b>\n";
+          msg += "\n📦 <b>Chi tiết nhập:</b>\n";
           for (let item of d.items) {
-            msg += "- " + item.productName + " (x" + item.qty + ")\\n";
+            msg += "- " + item.productName + " (x" + item.qty + ")\n";
           }
           sendTelegramMessage(msg);
         } catch(e) {}
@@ -748,10 +748,10 @@ function doPostInner(e, payload, ss) {
             try {
               const supplier = rowData[2];
               const totalAmount = rowData[4];
-              let msg = "❌ <b>MỘT PHIẾU NHẬP HÀNG VỪA BỊ XÓA</b>\\n\\n";
-              msg += "- Nhà cung cấp: " + supplier + "\\n";
-              msg += "- Giá trị phiếu: " + formatVND(totalAmount) + "\\n";
-              msg += "- Người xóa: " + user + "\\n";
+              let msg = "❌ <b>MỘT PHIẾU NHẬP HÀNG VỪA BỊ XÓA</b>\n\n";
+              msg += "- Nhà cung cấp: " + supplier + "\n";
+              msg += "- Giá trị phiếu: " + formatVND(totalAmount) + "\n";
+              msg += "- Người xóa: " + user + "\n";
               sendTelegramMessage(msg);
             } catch(e) {}
             // ----------------------------------------
