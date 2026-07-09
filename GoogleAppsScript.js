@@ -419,7 +419,7 @@ function doPostInner(e, payload, ss) {
           }
           const finalBal = prevBal + currentTotalIncome - currentTotalExpense;
 
-          let msg = "💸 <b>CÓ GIAO DỊCH " + (d.incomeAmount > 0 ? "THU" : "CHI") + " MỚI</b>\n\n";
+          let msg = "💸 <b>BÁO CÁO PHIẾU " + (d.incomeAmount > 0 ? "THU" : "CHI") + "</b>\n\n";
           msg += "- Số tiền: <b>" + formatVND(d.incomeAmount > 0 ? d.incomeAmount : d.expenseAmount) + "</b>\n";
           msg += "- Người " + (d.incomeAmount > 0 ? "nộp" : "nhận") + ": " + (d.personName || "Khách") + "\n";
           msg += "- Lý do: " + (d.incomeContent || d.expenseContent) + "\n\n";
@@ -544,7 +544,7 @@ function doPostInner(e, payload, ss) {
         
         // ---- Bắn thông báo Telegram Xuất Hàng ----
         try {
-          let msg = "🚀 <b>CÓ ĐƠN BÁN HÀNG MỚI</b>\n\n";
+          let msg = "🚀 <b>BÁO CÁO BÁN HÀNG</b>\n\n";
           msg += "- Khách hàng: <b>" + d.customerName + "</b>\n";
           msg += "- SĐT: " + d.phone + "\n";
           msg += "- Tổng tiền đơn hàng: <b>" + formatVND(totalAmount) + "</b>\n";
@@ -706,7 +706,7 @@ function doPostInner(e, payload, ss) {
         
         // ---- Bắn thông báo Telegram Nhập Hàng ----
         try {
-          let msg = "📥 <b>CÓ PHIẾU NHẬP HÀNG MỚI</b>\n\n";
+          let msg = "📥 <b>BÁO CÁO NHẬP HÀNG</b>\n\n";
           msg += "- Nhà cung cấp: <b>" + d.supplier + "</b>\n";
           msg += "- Tổng tiền thanh toán: <b>" + formatVND(totalAmount) + "</b>\n";
           msg += "- Đã trả: " + formatVND(d.paidAmount) + "\n";
