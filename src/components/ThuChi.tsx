@@ -225,7 +225,7 @@ export default function ThuChi() {
         </div>
       </div>
 
-      <div className="grid-50-50" style={{ alignItems: 'start' }}>
+      <div className="grid-50-50">
         <div className="card" style={{ overflow: 'hidden' }}>
           <div className="card-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h2 className="card-title" style={{ margin: 0 }}>Lịch sử Thu Chi</h2>
