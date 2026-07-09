@@ -343,6 +343,16 @@ function doPostInner(e, payload, ss) {
         const row = getRowById(sheet, payload.id);
         if (row) {
            logAudit(ss, user, "Xóa", "Thu Chi", `Xóa phiếu Thu/Chi ID: ${payload.id}`);
+           
+           // ---- Bắn thông báo Telegram Xóa Thu Chi ----
+           try {
+             let msg = "❌ <b>MỘT GIAO DỊCH VỪA BỊ XÓA</b>\\n\\n";
+             msg += "- Người xóa: " + user + "\\n";
+             msg += "- ID phiếu: " + payload.id + "\\n";
+             sendTelegramMessage(msg);
+           } catch(e) {}
+           // ----------------------------------------
+           
            return deleteRowById(sheet, payload.id);
         }
         return responseJson({ error: 'Không tìm thấy' }, 404);
@@ -479,6 +489,17 @@ function doPostInner(e, payload, ss) {
           }
 
           logAudit(ss, user, "Xóa", "Bán Hàng", `Xóa phiếu bán hàng KH: ${customerName}. Tổng tiền: ${totalAmount}`);
+          
+          // ---- Bắn thông báo Telegram Xóa Đơn Hàng ----
+          try {
+            let msg = "❌ <b>MỘT ĐƠN BÁN HÀNG VỪA BỊ XÓA</b>\\n\\n";
+            msg += "- Khách hàng: " + customerName + "\\n";
+            msg += "- Giá trị đơn: " + formatVND(totalAmount) + "\\n";
+            msg += "- Người xóa: " + user + "\\n";
+            sendTelegramMessage(msg);
+          } catch(e) {}
+          // ----------------------------------------
+          
           return deleteRowById(sheetBanHang, payload.id);
         }
         return responseJson({ error: 'Không tìm thấy phiếu' }, 404);
@@ -625,6 +646,19 @@ function doPostInner(e, payload, ss) {
               }
             }
             logAudit(ss, user, "Xóa", "Nhập Kho", `Xóa phiếu nhập hàng NCC: ${rowData[2]}`);
+            
+            // ---- Bắn thông báo Telegram Xóa Nhập Kho ----
+            try {
+              const supplier = rowData[2];
+              const totalAmount = rowData[4];
+              let msg = "❌ <b>MỘT PHIẾU NHẬP HÀNG VỪA BỊ XÓA</b>\\n\\n";
+              msg += "- Nhà cung cấp: " + supplier + "\\n";
+              msg += "- Giá trị phiếu: " + formatVND(totalAmount) + "\\n";
+              msg += "- Người xóa: " + user + "\\n";
+              sendTelegramMessage(msg);
+            } catch(e) {}
+            // ----------------------------------------
+            
             return deleteRowById(sheetNK, payload.id);
          }
          return responseJson({ error: 'Không tìm thấy phiếu' }, 404);
