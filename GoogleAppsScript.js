@@ -306,7 +306,7 @@ function doPostInner(e, payload, ss) {
       const sheetTK = ss.getSheetByName("Tài Khoản");
       const tkData = sheetTK.getDataRange().getValues();
       for (let i = 1; i < tkData.length; i++) {
-        if (tkData[i][1] === payload.username && tkData[i][2] === payload.password) {
+        if (String(tkData[i][1]).trim() === String(payload.username).trim() && String(tkData[i][2]).trim() === String(payload.password).trim()) {
           let perms = [];
           try { perms = JSON.parse(tkData[i][5] || "[]"); } catch(e) {}
           return responseJson({ success: true, user: { id: tkData[i][0], username: tkData[i][1], role: tkData[i][3], fullName: tkData[i][4], permissions: perms } });
@@ -997,6 +997,26 @@ function triggerFirebaseSync(ss, modules) {
         }
         result = { data: data };
       }
+      else if (module === 'users') {
+        const sheetTK = ss.getSheetByName("Tài Khoản");
+        if (sheetTK) {
+          const tkData = sheetTK.getDataRange().getValues();
+          const users = [];
+          for (let i = 1; i < tkData.length; i++) {
+            if (!tkData[i][0]) continue;
+            let perms = [];
+            try { perms = JSON.parse(tkData[i][5]); } catch(e) {}
+            users.push({
+              id: tkData[i][0],
+              username: tkData[i][1],
+              role: tkData[i][3],
+              fullName: tkData[i][4],
+              permissions: perms
+            });
+          }
+          result = { data: users };
+        }
+      }
 
       if (Object.keys(result).length > 0) {
         requests.push({
@@ -1019,7 +1039,7 @@ function triggerFirebaseSync(ss, modules) {
 // Chạy hàm này một lần duy nhất từ Apps Script Editor để đồng bộ toàn bộ dữ liệu cũ lên Firebase
 function initialFirebaseSync() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  triggerFirebaseSync(ss, ['thuchi', 'banhang', 'nhapkho', 'khohang', 'khachhang', 'congno']);
+  triggerFirebaseSync(ss, ['thuchi', 'banhang', 'nhapkho', 'khohang', 'khachhang', 'congno', 'users']);
   Logger.log("Đồng bộ Firebase thành công!");
 }
 
