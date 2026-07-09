@@ -171,14 +171,34 @@ body {
 }
 
 @media (max-width: 600px) {
+  .summary-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch; /* mượt hơn trên iOS */
+  }
+  
+  .summary-grid::-webkit-scrollbar {
+    height: 4px;
+  }
+  .summary-grid::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
   .summary-card {
+    flex: 0 0 auto;
+    min-width: 130px;
     padding: 1rem;
   }
   .summary-amount {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
   .summary-title {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+    white-space: normal;
   }
 }
 
