@@ -391,9 +391,9 @@ export default function ThuChi() {
 
       {/* Hidden Print Template */}
       {printRecord && (
-        <div id="printable-receipt">
+        <div id="printable-receipt" key={printRecord.id}>
           <div style={{ padding: '15px', fontFamily: 'Arial, sans-serif', width: '100%', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #000', paddingBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px', borderBottom: '1px solid #000', paddingBottom: '8px' }}>
             <div style={{ width: '65%', fontSize: '12px', lineHeight: '1.3' }}>
               <div style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '13px' }}>Quảng Cáo Nguyễn Hồ</div>
               <div>Địa chỉ: 67 đường 3/2. Phường Vườn Lài</div>
