@@ -461,6 +461,19 @@ function doPostInner(e, payload, ss) {
             new Date(d.date), d.expenseContent || "", d.expenseAmount || "", d.incomeContent || "", d.incomeAmount || "", d.personName || "", user
           ]]);
           logAudit(ss, user, "Cập nhật", "Thu Chi", `Cập nhật phiếu Thu/Chi ID: ${payload.id}`);
+          
+          // ---- Bắn thông báo Telegram Cập nhật Thu Chi ----
+          try {
+            let msg = "✏️ <b>CẬP NHẬT PHIẾU " + (d.incomeAmount > 0 ? "THU" : "CHI") + "</b>\n\n";
+            msg += "- Mã phiếu: " + payload.id + "\n";
+            msg += "- Số tiền: <b>" + formatVND(d.incomeAmount > 0 ? d.incomeAmount : d.expenseAmount) + "</b>\n";
+            msg += "- Người " + (d.incomeAmount > 0 ? "nộp" : "nhận") + ": " + (d.personName || "Khách") + "\n";
+            msg += "- Lý do: " + (d.incomeContent || d.expenseContent) + "\n";
+            msg += "- Người sửa: " + user;
+            sendTelegramMessage(msg);
+          } catch(e) {}
+          // ----------------------------------------
+
           return responseJson({ success: true });
         }
         return responseJson({ error: 'Không tìm thấy phiếu' }, 404);
@@ -475,6 +488,18 @@ function doPostInner(e, payload, ss) {
         // ID, SĐT, Tên Khách, Số lần mua, Ghi chú
         sheet.appendRow([newId, "'" + d.phone, d.name, 0, d.note || ""]);
         logAudit(ss, user, "Thêm Mới", "Khách Hàng", `Thêm khách hàng: ${d.name}`);
+        
+        // ---- Bắn thông báo Telegram Thêm Khách Hàng ----
+        try {
+          let msg = "🆕 <b>KHÁCH HÀNG MỚI</b>\n\n";
+          msg += "- Tên khách: <b>" + d.name + "</b>\n";
+          msg += "- Số điện thoại: " + d.phone + "\n";
+          msg += "- Ghi chú: " + (d.note || "Không có") + "\n";
+          msg += "- Người thêm: " + user;
+          sendTelegramMessage(msg);
+        } catch(e) {}
+        // ----------------------------------------
+
         return responseJson({ success: true, id: newId });
       } else if (action === 'edit' || action === 'update') {
         const d = payload.data || payload;
@@ -662,6 +687,20 @@ function doPostInner(e, payload, ss) {
           ]]);
           
           logAudit(ss, user, "Cập nhật", "Bán Hàng", `Cập nhật phiếu bán KH: ${d.customerName}. Tổng tiền: ${totalAmount}`);
+          
+          // ---- Bắn thông báo Telegram Cập nhật Đơn Hàng ----
+          try {
+            let msg = "✏️ <b>CẬP NHẬT ĐƠN BÁN HÀNG</b>\n\n";
+            msg += "- Mã phiếu: " + payload.id + "\n";
+            msg += "- Khách hàng: <b>" + d.customerName + "</b> (" + d.phone + ")\n";
+            msg += "- Tổng tiền: <b>" + formatVND(totalAmount) + "</b>\n";
+            msg += "- Đã thu: " + formatVND(d.paidAmount || 0) + "\n";
+            msg += "- Còn nợ: " + formatVND(debt) + "\n";
+            msg += "- Người sửa: " + user;
+            sendTelegramMessage(msg);
+          } catch(e) {}
+          // ----------------------------------------
+
           return responseJson({ success: true });
         }
         return responseJson({ error: 'Không tìm thấy phiếu' }, 404);
