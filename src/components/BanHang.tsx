@@ -529,8 +529,8 @@ export default function BanHang() {
       {/* Hidden Print Template (A5) */}
       {printRecord && (
         <div id="printable-receipt">
-          <div style={{ padding: '10mm', fontFamily: 'Arial, sans-serif', fontSize: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #000', paddingBottom: '10px' }}>
+          <div style={{ padding: '8mm', fontFamily: 'Arial, sans-serif', width: '100%', maxWidth: '148mm', margin: '0 auto', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #000', paddingBottom: '8px' }}>
               <div>
                 <div style={{ fontWeight: 'bold', fontSize: '15px', textTransform: 'uppercase' }}>Quảng Cáo Nguyễn Hồ</div>
                 <div style={{ fontSize: '11px' }}>Địa chỉ: 67 đường 3/2. Phường Vườn Lài</div>
