@@ -392,7 +392,7 @@ export default function ThuChi() {
       {/* Hidden Print Template */}
       {printRecord && (
         <div id="printable-receipt">
-          <div style={{ padding: '8mm', fontFamily: 'Arial, sans-serif', width: '100%', maxWidth: '148mm', margin: '0 auto', boxSizing: 'border-box' }}>
+          <div style={{ padding: '0', fontFamily: 'Arial, sans-serif', width: '100%', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #000', paddingBottom: '8px' }}>
             <div style={{ width: '65%', fontSize: '12px', lineHeight: '1.3' }}>
               <div style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '13px' }}>Quảng Cáo Nguyễn Hồ</div>

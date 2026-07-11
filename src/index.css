@@ -437,10 +437,9 @@ tbody tr:hover {
     position: relative;
     background: white;
     color: black;
-    margin: 0 auto;
+    margin: 0;
     padding: 0;
     width: 100%;
-    max-width: 148mm;
     overflow-x: hidden;
   }
 

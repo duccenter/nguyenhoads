@@ -529,7 +529,7 @@ export default function BanHang() {
       {/* Hidden Print Template (A5) */}
       {printRecord && (
         <div id="printable-receipt">
-          <div style={{ padding: '8mm', fontFamily: 'Arial, sans-serif', width: '100%', maxWidth: '148mm', margin: '0 auto', boxSizing: 'border-box' }}>
+          <div style={{ padding: '0', fontFamily: 'Arial, sans-serif', width: '100%', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #000', paddingBottom: '8px' }}>
               <div>
                 <div style={{ fontWeight: 'bold', fontSize: '15px', textTransform: 'uppercase' }}>Quảng Cáo Nguyễn Hồ</div>
