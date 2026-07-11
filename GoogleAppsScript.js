@@ -464,14 +464,17 @@ function doPostInner(e, payload, ss) {
           
           // ---- Bắn thông báo Telegram Cập nhật Thu Chi ----
           try {
-            let msg = "✏️ <b>CẬP NHẬT PHIẾU " + (d.incomeAmount > 0 ? "THU" : "CHI") + "</b>\n\n";
+            const isThu = Number(d.incomeAmount) > 0;
+            let msg = "✏️ <b>CẬP NHẬT PHIẾU " + (isThu ? "THU" : "CHI") + "</b>\n\n";
             msg += "- Mã phiếu: " + payload.id + "\n";
-            msg += "- Số tiền: <b>" + formatVND(d.incomeAmount > 0 ? d.incomeAmount : d.expenseAmount) + "</b>\n";
-            msg += "- Người " + (d.incomeAmount > 0 ? "nộp" : "nhận") + ": " + (d.personName || "Khách") + "\n";
+            msg += "- Số tiền: <b>" + formatVND(isThu ? d.incomeAmount : d.expenseAmount) + "</b>\n";
+            msg += "- Người " + (isThu ? "nộp" : "nhận") + ": " + (d.personName || "Khách") + "\n";
             msg += "- Lý do: " + (d.incomeContent || d.expenseContent) + "\n";
             msg += "- Người sửa: " + user;
             sendTelegramMessage(msg);
-          } catch(e) {}
+          } catch(e) {
+            sendTelegramMessage("Lỗi gửi tele Cập nhật Thu Chi: " + e.message);
+          }
           // ----------------------------------------
 
           return responseJson({ success: true });
