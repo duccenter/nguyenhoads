@@ -421,12 +421,8 @@ tbody tr:hover {
     display: none !important;
   }
 
-  /* Chỉ reset margin/padding khi đang in Phiếu Thu/Chi/Xuất */
-  body:has(#printable-receipt), 
-  body:has(#printable-receipt) #root, 
-  body:has(#printable-receipt) #root > div, 
-  body:has(#printable-receipt) #root > div > div, 
-  body:has(#printable-receipt) .module-container {
+  /* Reset margin/padding and overflow for printing */
+  html, body, #root, .flex-col, .app-container, .module-container, main {
     height: auto !important;
     min-height: auto !important;
     margin: 0 !important;

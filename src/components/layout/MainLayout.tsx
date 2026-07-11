@@ -43,7 +43,7 @@ export default function MainLayout({ user, onLogout }: MainLayoutProps) {
   return (
     <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
       {/* Universal Top Navigation */}
-      <header className="bg-slate-900 text-white shadow-md z-40">
+      <header className="bg-slate-900 text-white shadow-md z-40 no-print">
         
         {/* Top Header Row */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-slate-800">
