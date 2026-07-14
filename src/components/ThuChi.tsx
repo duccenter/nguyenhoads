@@ -8,7 +8,8 @@ import {
   TrendingDown,
   RefreshCw,
   Edit,
-  Search
+  Search,
+  X
 } from 'lucide-react';
 import { fetchData, postData } from '../api';
 
@@ -120,7 +121,6 @@ export default function ThuChi() {
     setPersonName(record.personName || '');
     setAmount(record.expenseAmount > 0 ? record.expenseAmount.toString() : record.incomeAmount.toString());
     setContent(record.expenseAmount > 0 ? record.expenseContent : record.incomeContent);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
@@ -159,6 +159,75 @@ export default function ThuChi() {
     if (!val) return '';
     return val.toLocaleString('vi-VN');
   };
+
+  const formContent = (
+    <form onSubmit={handleSubmit}>
+      <div className="form-group">
+        <label className="form-label">Ngày chứng từ</label>
+        <input 
+          type="date" 
+          className="form-control" 
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Người {type === 'expense' ? 'nhận tiền' : 'nộp tiền'}</label>
+        <input 
+          type="text" 
+          className="form-control" 
+          placeholder={`Nhập tên người ${type === 'expense' ? 'nhận' : 'nộp'}...`}
+          value={personName}
+          onChange={(e) => setPersonName(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Nội dung {type === 'expense' ? 'Chi' : 'Thu'}</label>
+        <input 
+          type="text" 
+          className="form-control" 
+          placeholder={`Nhập lý do ${type === 'expense' ? 'chi tiền' : 'thu tiền'}...`}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Số tiền (VNĐ)</label>
+        <input 
+          type="number" 
+          className="form-control" 
+          placeholder="0"
+          min="0"
+          step="1000"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Người lập phiếu</label>
+        <input 
+          type="text" 
+          className="form-control" 
+          placeholder="Nhập tên người lập phiếu..."
+          value={creatorName}
+          onChange={(e) => setCreatorName(e.target.value)}
+        />
+      </div>
+
+      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
+        <button type="submit" className={`btn ${type === 'expense' ? 'btn-expense' : 'btn-income'}`} disabled={loading} style={{ flex: 1 }}>
+          {loading ? 'Đang xử lý...' : (editingId ? 'Cập Nhật Phiếu' : `Thêm Khoản ${type === 'expense' ? 'Chi' : 'Thu'}`)}
+        </button>
+      </div>
+    </form>
+  );
 
   return (
     <div className="module-container">
@@ -262,7 +331,7 @@ export default function ThuChi() {
                 ) : filteredData.length === 0 ? (
                   <tr><td colSpan={6} className="text-center" style={{padding: '2rem', color: 'var(--text-secondary)'}}>{data.length === 0 ? 'Chưa có dữ liệu.' : 'Không tìm thấy giao dịch phù hợp.'}</td></tr>
                 ) : (
-                  filteredData.map((row) => (
+                  [...filteredData].reverse().map((row) => (
                     <tr key={row.id}>
                       <td>{row.date ? format(new Date(row.date), 'dd/MM') : ''}</td>
                       <td>{row.expenseContent}</td>
@@ -302,94 +371,36 @@ export default function ThuChi() {
                 <TrendingDown size={20} />
                 LẬP PHIẾU CHI
               </button>
-              <button 
-                type="button"
-                className={`tab-btn income ${type === 'income' ? 'active' : ''}`}
-                onClick={() => setType('income')}
-              >
-                <TrendingUp size={20} />
-                LẬP PHIẾU THU
-              </button>
+              <button type="button" className={`tab-btn expense ${type === 'expense' ? 'active' : ''}`} onClick={() => setType('expense')}><TrendingDown size={20} /> LẬP PHIẾU CHI</button>
+              <button type="button" className={`tab-btn income ${type === 'income' ? 'active' : ''}`} onClick={() => setType('income')}><TrendingUp size={20} /> LẬP PHIẾU THU</button>
             </div>
           </div>
           <div className="form-body">
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label className="form-label">Ngày chứng từ</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
+            {!editingId && (
+              <div style={{ marginTop: '2rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Tạo phiếu mới</h3>
+                {formContent}
               </div>
-
-              <div className="form-group">
-                <label className="form-label">Người {type === 'expense' ? 'nhận tiền' : 'nộp tiền'}</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder={`Nhập tên người ${type === 'expense' ? 'nhận' : 'nộp'}...`}
-                  value={personName}
-                  onChange={(e) => setPersonName(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Nội dung {type === 'expense' ? 'Chi' : 'Thu'}</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder={`Nhập lý do ${type === 'expense' ? 'chi tiền' : 'thu tiền'}...`}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Số tiền (VNĐ)</label>
-                <input 
-                  type="number" 
-                  className="form-control" 
-                  placeholder="0"
-                  min="0"
-                  step="1000"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Người lập phiếu</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Nhập tên người lập phiếu..."
-                  value={creatorName}
-                  onChange={(e) => setCreatorName(e.target.value)}
-                />
-              </div>
-
-              <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
-                <button type="submit" className={`btn ${type === 'expense' ? 'btn-expense' : 'btn-income'}`} disabled={loading} style={{ flex: 1 }}>
-                  {loading ? 'Đang xử lý...' : (editingId ? 'Cập Nhật Phiếu' : `Thêm Khoản ${type === 'expense' ? 'Chi' : 'Thu'}`)}
-                </button>
-                {editingId && (
-                  <button type="button" className="btn btn-secondary" onClick={cancelEdit} disabled={loading} style={{ flex: 1, backgroundColor: '#e2e8f0', color: '#1e293b' }}>
-                    Hủy Sửa
-                  </button>
-                )}
-              </div>
-            </form>
+            )}
           </div>
         </div>
       </div>
       </div>
 
-      {/* Hidden Print Template */}
+      {editingId && (
+        <div className="modal-overlay" onClick={cancelEdit}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="card-title" style={{ margin: 0 }}>Cập nhật phiếu Thu/Chi</h2>
+              <button className="btn-icon" onClick={cancelEdit}><X size={20}/></button>
+            </div>
+            <div className="modal-body">
+              {formContent}
+            </div>
+          </div>
+        </div>
+      )}
+
       {printRecord && (
         <div id="printable-receipt">
           <div style={{ padding: '15px', fontFamily: 'Arial, sans-serif', width: '100%', boxSizing: 'border-box' }}>

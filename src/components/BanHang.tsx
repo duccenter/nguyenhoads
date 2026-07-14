@@ -176,7 +176,6 @@ export default function BanHang() {
     setItems(loadedItems.length > 0 ? loadedItems : [{ productId: '', code: '', name: '', searchVal: '', qty: 1, price: 0, importPrice: 0 }]);
     setPaidAmount(record.paidAmount.toString());
     setNote(record.note || '');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
@@ -245,6 +244,142 @@ export default function BanHang() {
   const totalItemsSold = filteredSales.reduce((sum, s) => sum + s.items.reduce((itemSum, item) => itemSum + Number(item.qty), 0), 0);
   const totalDebt = filteredSales.reduce((sum, s) => sum + s.debt, 0);
 
+  const formContent = (
+    <form onSubmit={handleSubmit}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+          <label className="form-label">Ngày xuất phiếu</label>
+          <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label className="form-label">Số điện thoại Khách</label>
+          <input 
+            type="text" 
+            className="form-control" 
+            placeholder="Nhập SĐT..."
+            list="customer-list"
+            value={phone}
+            onChange={(e) => {
+              const val = e.target.value;
+              setPhone(val);
+              const matched = customers.find(c => c.phone === val);
+              if (matched) setCustomerName(matched.name);
+            }}
+            required
+          />
+          <datalist id="customer-list">
+            {customers.map(c => <option key={c.id} value={c.phone}>{c.name}</option>)}
+          </datalist>
+        </div>
+        <div className="form-group" style={{ flex: 2 }}>
+          <label className="form-label">
+            Tên Khách Hàng
+            {customers.find(c => c.phone === phone) && <span style={{ marginLeft: '10px', fontSize: '0.8rem', color: 'var(--income-color)', fontWeight: 'normal' }}>
+              (Khách quen - Đã mua {customers.find(c => c.phone === phone)?.purchaseCount} lần)
+            </span>}
+          </label>
+          <input 
+            type="text" 
+            className="form-control" 
+            placeholder="Tên khách hàng..."
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+
+      {/* Items List */}
+      <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+        <label className="form-label">Chi tiết Đơn Hàng</label>
+        {items.map((item, index) => (
+          <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'flex-start' }}>
+            <div style={{ flex: 3 }}>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="Nhập mã, tên hoặc tự gõ hàng ngoài..."
+                list={`product-list-${index}`}
+                value={item.searchVal !== undefined ? item.searchVal : (item.code ? `${item.code} - ${item.name}` : item.name)}
+                onChange={(e) => handleProductSearch(index, e.target.value)}
+                required
+                style={{ fontSize: '1.1rem', padding: '0.6rem' }}
+              />
+              <datalist id={`product-list-${index}`}>
+                {products.map(p => (
+                  <option key={p.id} value={`${p.code} - ${p.name}`}>Tồn: {p.stock}</option>
+                ))}
+              </datalist>
+              {!item.productId && (item.searchVal || item.name) && (
+                <small style={{ color: 'var(--income-color)', display: 'block', marginTop: '4px' }}>
+                  * Hàng nhập ngoài (Không trừ Tồn kho)
+                </small>
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <input 
+                type="number" className="form-control" placeholder="Đơn giá" min="0" step="1000"
+                value={item.price || ''} 
+                onChange={(e) => handleItemChange(index, 'price', Number(e.target.value))} 
+                title="Đơn giá (Có thể sửa để chiết khấu)"
+              />
+            </div>
+            <div style={{ width: '80px' }}>
+              <input 
+                type="number" className="form-control" placeholder="SL" min="1" 
+                value={item.qty || ''} 
+                onChange={(e) => handleItemChange(index, 'qty', Number(e.target.value))} 
+              />
+            </div>
+            <div style={{ width: '100px', display: 'flex', alignItems: 'center', height: '38px', fontWeight: 'bold' }}>
+              {formatMoney(item.qty * item.price)} đ
+            </div>
+            {items.length > 1 && (
+              <button type="button" className="btn-icon" style={{ height: '38px', color: 'var(--expense-color)' }} onClick={() => removeItemRow(index)}>
+                <X size={20} />
+              </button>
+            )}
+          </div>
+        ))}
+        <button type="button" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }} onClick={addItemRow}>
+          + Thêm sản phẩm
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', fontSize: '1.1rem' }}>
+        <strong>Tổng Cộng: <span style={{ color: 'var(--primary-color)' }}>{formatMoney(currentTotalAmount)} đ</span></strong>
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label className="form-label">Khách thanh toán (đ)</label>
+          <input 
+            type="number" className="form-control" min="0" step="1000"
+            value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)}
+          />
+        </div>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label className="form-label">Ghi chú</label>
+          <input type="text" className="form-control" value={note} onChange={(e) => setNote(e.target.value)} />
+        </div>
+      </div>
+
+      {currentDebt > 0 && (
+        <div style={{ marginBottom: '1rem', color: 'var(--expense-color)', fontWeight: 'bold' }}>
+          Khách Nợ: {formatMoney(currentDebt)} đ
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+        <button type="submit" className="btn btn-income" style={{ flex: 1 }} disabled={loading}>
+          {loading ? 'Đang xử lý...' : (editingId ? 'CẬP NHẬT PHIẾU BÁN HÀNG' : 'HOÀN TẤT & LƯU PHIẾU')}
+        </button>
+      </div>
+    </form>
+  );
 
   return (
     <div className="module-container">
@@ -291,145 +426,11 @@ export default function BanHang() {
             </h2>
           </div>
           <div className="form-body">
-            <form onSubmit={handleSubmit}>
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-                  <label className="form-label">Ngày xuất phiếu</label>
-                  <input type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
-                </div>
+            {!editingId && (
+              <div style={{ marginTop: '1rem' }}>
+                {formContent}
               </div>
-
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label className="form-label">Số điện thoại Khách</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="Nhập SĐT..."
-                    list="customer-list"
-                    value={phone}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setPhone(val);
-                      const matched = customers.find(c => c.phone === val);
-                      if (matched) setCustomerName(matched.name);
-                    }}
-                    required
-                  />
-                  <datalist id="customer-list">
-                    {customers.map(c => <option key={c.id} value={c.phone}>{c.name}</option>)}
-                  </datalist>
-                </div>
-                <div className="form-group" style={{ flex: 2 }}>
-                  <label className="form-label">
-                    Tên Khách Hàng
-                    {customers.find(c => c.phone === phone) && <span style={{ marginLeft: '10px', fontSize: '0.8rem', color: 'var(--income-color)', fontWeight: 'normal' }}>
-                      (Khách quen - Đã mua {customers.find(c => c.phone === phone)?.purchaseCount} lần)
-                    </span>}
-                  </label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="Tên khách hàng..."
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Items List */}
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-                <label className="form-label">Chi tiết Đơn Hàng</label>
-                {items.map((item, index) => (
-                  <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'flex-start' }}>
-                    <div style={{ flex: 3 }}>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="Nhập mã, tên hoặc tự gõ hàng ngoài..."
-                        list={`product-list-${index}`}
-                        value={item.searchVal !== undefined ? item.searchVal : (item.code ? `${item.code} - ${item.name}` : item.name)}
-                        onChange={(e) => handleProductSearch(index, e.target.value)}
-                        required
-                        style={{ fontSize: '1.1rem', padding: '0.6rem' }}
-                      />
-                      <datalist id={`product-list-${index}`}>
-                        {products.map(p => (
-                          <option key={p.id} value={`${p.code} - ${p.name}`}>Tồn: {p.stock}</option>
-                        ))}
-                      </datalist>
-                      {!item.productId && (item.searchVal || item.name) && (
-                        <small style={{ color: 'var(--income-color)', display: 'block', marginTop: '4px' }}>
-                          * Hàng nhập ngoài (Không trừ Tồn kho)
-                        </small>
-                      )}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <input 
-                        type="number" className="form-control" placeholder="Đơn giá" min="0" step="1000"
-                        value={item.price || ''} 
-                        onChange={(e) => handleItemChange(index, 'price', Number(e.target.value))} 
-                        title="Đơn giá (Có thể sửa để chiết khấu)"
-                      />
-                    </div>
-                    <div style={{ width: '80px' }}>
-                      <input 
-                        type="number" className="form-control" placeholder="SL" min="1" 
-                        value={item.qty || ''} 
-                        onChange={(e) => handleItemChange(index, 'qty', Number(e.target.value))} 
-                      />
-                    </div>
-                    <div style={{ width: '100px', display: 'flex', alignItems: 'center', height: '38px', fontWeight: 'bold' }}>
-                      {formatMoney(item.qty * item.price)} đ
-                    </div>
-                    {items.length > 1 && (
-                      <button type="button" className="btn-icon" style={{ height: '38px', color: 'var(--expense-color)' }} onClick={() => removeItemRow(index)}>
-                        <X size={20} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }} onClick={addItemRow}>
-                  + Thêm sản phẩm
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', fontSize: '1.1rem' }}>
-                <strong>Tổng Cộng: <span style={{ color: 'var(--primary-color)' }}>{formatMoney(currentTotalAmount)} đ</span></strong>
-              </div>
-
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label className="form-label">Khách thanh toán (đ)</label>
-                  <input 
-                    type="number" className="form-control" min="0" step="1000"
-                    value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)}
-                  />
-                </div>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label className="form-label">Ghi chú</label>
-                  <input type="text" className="form-control" value={note} onChange={(e) => setNote(e.target.value)} />
-                </div>
-              </div>
-
-              {currentDebt > 0 && (
-                <div style={{ marginBottom: '1rem', color: 'var(--expense-color)', fontWeight: 'bold' }}>
-                  Khách Nợ: {formatMoney(currentDebt)} đ
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                <button type="submit" className="btn btn-income" style={{ flex: 1 }} disabled={loading}>
-                  {loading ? 'Đang xử lý...' : (editingId ? 'CẬP NHẬT PHIẾU BÁN HÀNG' : 'HOÀN TẤT & LƯU PHIẾU')}
-                </button>
-                {editingId && (
-                  <button type="button" className="btn btn-secondary" onClick={cancelEdit} disabled={loading} style={{ flex: 1, backgroundColor: '#e2e8f0', color: '#1e293b' }}>
-                    HỦY SỬA
-                  </button>
-                )}
-              </div>
-            </form>
+            )}
           </div>
         </div>
 
@@ -491,7 +492,7 @@ export default function BanHang() {
                 ) : filteredSales.length === 0 ? (
                   <tr><td colSpan={6} className="text-center" style={{padding: '2rem', color: 'var(--text-secondary)'}}>{sales.length === 0 ? 'Chưa có đơn bán hàng nào.' : 'Không tìm thấy đơn hàng phù hợp.'}</td></tr>
                 ) : (
-                  filteredSales.map((row) => (
+                  [...filteredSales].reverse().map((row) => (
                     <tr key={row.id}>
                       <td>{row.date ? format(new Date(row.date), 'dd/MM/yyyy') : ''}</td>
                       <td>
@@ -606,6 +607,20 @@ export default function BanHang() {
                 <div style={{ margin: '5px 0' }}><small>(Ký, ghi rõ họ tên)</small></div>
                 <div style={{ marginTop: '60px', fontWeight: 'bold' }}>{printRecord.creatorName || ''}</div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingId && (
+        <div className="modal-overlay" onClick={cancelEdit}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="card-title" style={{ margin: 0 }}>Cập nhật phiếu Bán Hàng</h2>
+              <button className="btn-icon" onClick={cancelEdit}><X size={20}/></button>
+            </div>
+            <div className="modal-body">
+              {formContent}
             </div>
           </div>
         </div>
