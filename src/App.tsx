@@ -31,6 +31,16 @@ export default function App() {
       } catch (e) {}
     }
     setIsInitializing(false);
+
+    // Prevent scrolling from changing number inputs
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement;
+      if (document.activeElement === target && target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'number') {
+        target.blur();
+      }
+    };
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
   }, []);
 
   const handleLogout = () => {
