@@ -363,14 +363,6 @@ export default function ThuChi() {
         <div className={`card form-card ${type}`}>
           <div className="card-header" style={{ padding: 0 }}>
             <div className="form-tabs">
-              <button 
-                type="button"
-                className={`tab-btn expense ${type === 'expense' ? 'active' : ''}`}
-                onClick={() => setType('expense')}
-              >
-                <TrendingDown size={20} />
-                LẬP PHIẾU CHI
-              </button>
               <button type="button" className={`tab-btn expense ${type === 'expense' ? 'active' : ''}`} onClick={() => setType('expense')}><TrendingDown size={20} /> LẬP PHIẾU CHI</button>
               <button type="button" className={`tab-btn income ${type === 'income' ? 'active' : ''}`} onClick={() => setType('income')}><TrendingUp size={20} /> LẬP PHIẾU THU</button>
             </div>
