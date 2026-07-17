@@ -155,12 +155,12 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
             </div>
 
             <div className="overflow-x-auto print:overflow-visible">
-              <table className="w-full text-left text-sm whitespace-nowrap print:text-xs">
-                <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase text-xs font-semibold">
+              <table className="w-full text-left text-sm whitespace-nowrap print:whitespace-normal print:text-[10px]">
+                <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase text-xs print:text-[10px] font-semibold">
                   <tr>
-                    <th className="px-6 py-4 print:py-2">STT</th>
+                    <th className="px-4 py-3 print:px-1 print:py-1">STT</th>
                     {columns.map((col, idx) => (
-                      <th key={idx} className={`px-6 py-4 print:py-2 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>
+                      <th key={idx} className={`px-4 py-3 print:px-1 print:py-1 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>
                         {col.header}
                       </th>
                     ))}
@@ -169,16 +169,16 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
                 <tbody className="divide-y divide-slate-100 text-slate-700">
                   {filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan={columns.length + 1} className="px-6 py-8 text-center text-slate-500">
+                      <td colSpan={columns.length + 1} className="px-4 py-8 text-center text-slate-500">
                         Không có dữ liệu trong khoảng thời gian này.
                       </td>
                     </tr>
                   ) : (
                     filteredData.map((row, rowIdx) => (
-                      <tr key={rowIdx} className="hover:bg-slate-50/50">
-                        <td className="px-6 py-3 print:py-1 text-slate-500">{rowIdx + 1}</td>
+                      <tr key={rowIdx} className="hover:bg-slate-50/50 print:border-b print:border-slate-200">
+                        <td className="px-4 py-3 print:px-1 print:py-1 text-slate-500">{rowIdx + 1}</td>
                         {columns.map((col, colIdx) => (
-                          <td key={colIdx} className={`px-4 py-3 print:px-2 print:py-1 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>
+                          <td key={colIdx} className={`px-4 py-3 print:px-1 print:py-1 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>
                             <div className="max-w-[200px] sm:max-w-[250px] truncate print:max-w-none print:whitespace-normal print:break-words" title={col.exportValue ? String(col.exportValue(row)) : (col.key ? String(row[col.key] || '') : '')}>
                               {col.render(row, rowIdx)}
                             </div>
@@ -226,10 +226,14 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
           table {
             page-break-inside: auto;
             width: 100% !important;
+            table-layout: fixed;
           }
           tr {
             page-break-inside: avoid;
             page-break-after: auto;
+          }
+          td, th {
+            word-wrap: break-word;
           }
           thead {
             display: table-header-group;
