@@ -36,11 +36,7 @@ export default function KhachHang() {
     return !!(c.name?.toLowerCase().includes(lowerSearch) || c.phone?.includes(searchTerm));
   });
 
-  const getCustomerBadge = (spent: number) => {
-    if (spent >= 20000000) return <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">VIP</span>;
-    if (spent >= 5000000) return <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">Thân thiết</span>;
-    return <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs">Mới</span>;
-  };
+
 
   const handleOpenAddModal = () => {
     setIsEditMode(false);
