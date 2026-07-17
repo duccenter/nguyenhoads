@@ -178,8 +178,10 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
                       <tr key={rowIdx} className="hover:bg-slate-50/50">
                         <td className="px-6 py-3 print:py-1 text-slate-500">{rowIdx + 1}</td>
                         {columns.map((col, colIdx) => (
-                          <td key={colIdx} className={`px-6 py-3 print:py-1 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} max-w-[300px] whitespace-normal print:whitespace-normal break-words`}>
-                            {col.render(row, rowIdx)}
+                          <td key={colIdx} className={`px-4 py-3 print:px-2 print:py-1 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>
+                            <div className="max-w-[200px] sm:max-w-[250px] truncate print:max-w-none print:whitespace-normal print:break-words" title={col.exportValue ? String(col.exportValue(row)) : (col.key ? String(row[col.key] || '') : '')}>
+                              {col.render(row, rowIdx)}
+                            </div>
                           </td>
                         ))}
                       </tr>
