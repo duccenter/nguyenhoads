@@ -13,7 +13,7 @@
 const HEADERS_THUCHI = ['ID', 'Ngày', 'Nội dung Chi', 'Số tiền Chi', 'Nội dung Thu', 'Số tiền Thu', 'Người Giao/Nhận', 'Người Lập Phiếu'];
 const HEADERS_BANHANG = ['ID', 'Ngày', 'SĐT Khách', 'Tên Khách', 'Chi tiết (JSON)', 'Tổng Tiền', 'Đã Thanh Toán', 'Còn Nợ', 'Ghi chú', 'Người Tạo'];
 const HEADERS_NHAPKHO = ['ID', 'Ngày', 'Nhà Cung Cấp', 'Chi tiết (JSON)', 'Tổng Cần Trả', 'Đã Thanh Toán', 'Còn Nợ', 'Ghi chú', 'Người Tạo'];
-const HEADERS_KHACHHANG = ['ID', 'SĐT', 'Tên Khách', 'Số lần mua', 'Ghi chú', 'Đơn đặt hàng', 'Thanh Toán', 'Còn Nợ', 'Ngày Nghiệm Thu'];
+const HEADERS_KHACHHANG = ['ID', 'SĐT', 'Tên Khách', 'Số lần mua', 'Ghi chú', 'Đơn đặt hàng', 'Thanh Toán', 'Còn Nợ', 'Ngày Nghiệm Thu', 'Địa chỉ'];
 const HEADERS_TONKHO = ['ID', 'Mã SP', 'Tên Sản Phẩm', 'ĐVT', 'Giá Nhập', 'Giá Bán', 'Số lượng Tồn'];
 const HEADERS_LICHSUKHO = ['ID', 'Mã SP', 'Tên Sản Phẩm', 'Ngày', 'Loại (import/export)', 'Số lượng', 'Ghi chú', 'Người Thực Hiện'];
 const HEADERS_TAIKHOAN = ['ID', 'Tài khoản', 'Mật khẩu', 'Quyền', 'Họ Tên'];
@@ -488,8 +488,8 @@ function doPostInner(e, payload, ss) {
       if (action === 'add') {
         const d = payload.data || payload;
         const newId = generateId();
-        // ID, SĐT, Tên Khách, Số lần mua, Ghi chú, Đơn đặt hàng, Thanh Toán, Còn Nợ, Ngày Nghiệm Thu
-        sheet.appendRow([newId, "'" + d.phone, d.name, 0, d.note || "", d.orders || "", Number(d.paid) || 0, Number(d.debt) || 0, d.acceptanceDate || ""]);
+        // ID, SĐT, Tên Khách, Số lần mua, Ghi chú, Đơn đặt hàng, Thanh Toán, Còn Nợ, Ngày Nghiệm Thu, Địa chỉ
+        sheet.appendRow([newId, "'" + d.phone, d.name, 0, d.note || "", d.orders || "", Number(d.paid) || 0, Number(d.debt) || 0, d.acceptanceDate || "", d.address || ""]);
         logAudit(ss, user, "Thêm Mới", "Khách Hàng", `Thêm khách hàng: ${d.name}`);
         
         // ---- Bắn thông báo Telegram Thêm Khách Hàng ----
@@ -497,7 +497,12 @@ function doPostInner(e, payload, ss) {
           let msg = "🆕 <b>KHÁCH HÀNG MỚI</b>\n\n";
           msg += "- Tên khách: <b>" + d.name + "</b>\n";
           msg += "- Số điện thoại: " + d.phone + "\n";
-          msg += "- Ghi chú: " + (d.note || "Không có") + "\n";
+          if (d.orders) msg += "- Đơn đặt hàng: " + d.orders + "\n";
+          if (d.paid) msg += "- Thanh toán: " + formatVND(d.paid) + "\n";
+          if (d.debt) msg += "- Còn nợ: " + formatVND(d.debt) + "\n";
+          if (d.acceptanceDate) msg += "- Ngày nghiệm thu: " + d.acceptanceDate + "\n";
+          if (d.address) msg += "- Địa chỉ: " + d.address + "\n";
+          if (d.note) msg += "- Ghi chú: " + d.note + "\n";
           msg += "- Người thêm: " + user;
           sendTelegramMessage(msg);
         } catch(e) {}
@@ -508,7 +513,7 @@ function doPostInner(e, payload, ss) {
         const d = payload.data || payload;
         const match = getRowById(sheet, d.id);
         if (match) {
-          // ID ở cột 1, SĐT ở cột 2, Tên ở cột 3, Số lần mua ở cột 4, Ghi chú ở cột 5, Đơn đặt hàng ở cột 6, Thanh Toán ở cột 7, Còn Nợ ở cột 8, Ngày Nghiệm Thu ở cột 9
+          // ID ở cột 1, SĐT ở cột 2, Tên ở cột 3, Số lần mua ở cột 4, Ghi chú ở cột 5, Đơn đặt hàng ở cột 6, Thanh Toán ở cột 7, Còn Nợ ở cột 8, Ngày Nghiệm Thu ở cột 9, Địa chỉ ở cột 10
           sheet.getRange(match.rowNum, 2).setValue("'" + d.phone);
           sheet.getRange(match.rowNum, 3).setValue(d.name);
           sheet.getRange(match.rowNum, 5).setValue(d.note || "");
@@ -516,7 +521,25 @@ function doPostInner(e, payload, ss) {
           sheet.getRange(match.rowNum, 7).setValue(Number(d.paid) || 0);
           sheet.getRange(match.rowNum, 8).setValue(Number(d.debt) || 0);
           sheet.getRange(match.rowNum, 9).setValue(d.acceptanceDate || "");
+          sheet.getRange(match.rowNum, 10).setValue(d.address || "");
           logAudit(ss, user, "Cập nhật", "Khách Hàng", `Sửa thông tin KH: ${d.name}`);
+
+          // ---- Bắn thông báo Telegram Cập nhật Khách Hàng ----
+          try {
+            let msg = "✏️ <b>CẬP NHẬT KHÁCH HÀNG</b>\n\n";
+            msg += "- Tên khách: <b>" + d.name + "</b>\n";
+            msg += "- Số điện thoại: " + d.phone + "\n";
+            if (d.orders) msg += "- Đơn đặt hàng: " + d.orders + "\n";
+            if (d.paid) msg += "- Thanh toán: " + formatVND(d.paid) + "\n";
+            if (d.debt) msg += "- Còn nợ: " + formatVND(d.debt) + "\n";
+            if (d.acceptanceDate) msg += "- Ngày nghiệm thu: " + d.acceptanceDate + "\n";
+            if (d.address) msg += "- Địa chỉ: " + d.address + "\n";
+            if (d.note) msg += "- Ghi chú: " + d.note + "\n";
+            msg += "- Người sửa: " + user;
+            sendTelegramMessage(msg);
+          } catch(e) {}
+          // ----------------------------------------
+
           return responseJson({ success: true });
         }
         return responseJson({ error: 'Không tìm thấy khách hàng' }, 404);
@@ -547,7 +570,7 @@ function doPostInner(e, payload, ss) {
           sheetKhachHang.getRange(khRowIndex, 3).setValue(d.customerName);
           sheetKhachHang.getRange(khRowIndex, 4).setValue(currentCount + 1);
         } else {
-          sheetKhachHang.appendRow([generateId(), "'" + d.phone, d.customerName, 1, "", "", 0, 0, ""]);
+          sheetKhachHang.appendRow([generateId(), "'" + d.phone, d.customerName, 1, "", "", 0, 0, "", ""]);
         }
 
         // 2. Thêm Bán Hàng
@@ -1007,7 +1030,8 @@ function triggerFirebaseSync(ss, modules) {
           let stat = stats[phone] || { spent: 0, debt: 0, count: 0 };
           data.push({ 
             id: row[0], phone: phone, name: row[2] || "", 
-            purchaseCount: stat.count, totalSpent: stat.spent, debt: stat.debt, note: row[4] || "" 
+            purchaseCount: stat.count, totalSpent: stat.spent, debt: row[7] || 0, note: row[4] || "",
+            orders: row[5] || "", paid: row[6] || 0, acceptanceDate: row[8] || "", address: row[9] || ""
           });
         }
         result = { data: data };

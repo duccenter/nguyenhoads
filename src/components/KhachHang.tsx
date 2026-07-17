@@ -12,7 +12,7 @@ export default function KhachHang() {
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [customerForm, setCustomerForm] = useState({ id: '', name: '', phone: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
+  const [customerForm, setCustomerForm] = useState({ id: '', name: '', phone: '', address: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
   const [errorMsg, setErrorMsg] = useState('');
 
   const loadData = () => {
@@ -40,7 +40,7 @@ export default function KhachHang() {
 
   const handleOpenAddModal = () => {
     setIsEditMode(false);
-    setCustomerForm({ id: '', name: '', phone: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
+    setCustomerForm({ id: '', name: '', phone: '', address: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
     setErrorMsg('');
     setShowModal(true);
   };
@@ -50,7 +50,8 @@ export default function KhachHang() {
     setCustomerForm({ 
       id: c.id, 
       name: c.name, 
-      phone: c.phone, 
+      phone: c.phone,
+      address: c.address || '',
       note: c.note || '',
       orders: c.orders || '',
       paid: c.paid || '',
@@ -139,6 +140,7 @@ export default function KhachHang() {
               <tr>
                 <th className="px-6 py-4">Khách Hàng</th>
                 <th className="px-6 py-4">Số điện thoại</th>
+                <th className="px-6 py-4">Địa chỉ</th>
                 <th className="px-6 py-4">Đơn đặt hàng</th>
                 <th className="px-6 py-4 text-right">Thanh toán</th>
                 <th className="px-6 py-4 text-right">Còn nợ</th>
@@ -158,6 +160,7 @@ export default function KhachHang() {
                   <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4 font-semibold text-slate-800">{c.name}</td>
                     <td className="px-6 py-4">{c.phone}</td>
+                    <td className="px-6 py-4 whitespace-normal">{c.address || '-'}</td>
                     <td className="px-6 py-4 whitespace-normal">{c.orders || '-'}</td>
                     <td className="px-6 py-4 text-right font-medium text-green-600">{formatMoney(c.paid || 0)}</td>
                     <td className="px-6 py-4 text-right font-medium text-red-600">{formatMoney(c.debt || 0)}</td>
@@ -241,6 +244,17 @@ export default function KhachHang() {
                   placeholder="Nhập số điện thoại..."
                   value={customerForm.phone}
                   onChange={(e) => setCustomerForm({...customerForm, phone: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Địa chỉ</label>
+                <input 
+                  type="text" 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                  placeholder="Nhập địa chỉ..."
+                  value={customerForm.address}
+                  onChange={(e) => setCustomerForm({...customerForm, address: e.target.value})}
                 />
               </div>
 
