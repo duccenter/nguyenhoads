@@ -160,8 +160,8 @@ export default function KhachHang() {
                   <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4 font-semibold text-slate-800">{c.name}</td>
                     <td className="px-6 py-4">{c.phone}</td>
-                    <td className="px-6 py-4 whitespace-normal">{c.address || '-'}</td>
-                    <td className="px-6 py-4 whitespace-normal">{c.orders || '-'}</td>
+                    <td className="px-6 py-4 max-w-[200px] truncate" title={c.address}>{c.address || '-'}</td>
+                    <td className="px-6 py-4 max-w-[250px] truncate" title={c.orders}>{c.orders || '-'}</td>
                     <td className="px-6 py-4 text-right font-medium text-green-600">{formatMoney(c.paid || 0)}</td>
                     <td className="px-6 py-4 text-right font-medium text-red-600">{formatMoney(c.debt || 0)}</td>
                     <td className="px-6 py-4">{c.acceptanceDate ? new Date(c.acceptanceDate).toLocaleDateString('vi-VN') : '-'}</td>
@@ -170,7 +170,7 @@ export default function KhachHang() {
                         {c.purchaseCount || 0}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-normal text-slate-500 max-w-[200px] truncate">{c.note || '-'}</td>
+                    <td className="px-6 py-4 text-slate-500 max-w-[200px] truncate" title={c.note}>{c.note || '-'}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1">
                         <button 
