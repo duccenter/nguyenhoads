@@ -12,7 +12,7 @@ export default function KhachHang() {
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [customerForm, setCustomerForm] = useState({ id: '', name: '', phone: '', note: '' });
+  const [customerForm, setCustomerForm] = useState({ id: '', name: '', phone: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
   const [errorMsg, setErrorMsg] = useState('');
 
   const loadData = () => {
@@ -44,14 +44,23 @@ export default function KhachHang() {
 
   const handleOpenAddModal = () => {
     setIsEditMode(false);
-    setCustomerForm({ id: '', name: '', phone: '', note: '' });
+    setCustomerForm({ id: '', name: '', phone: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
     setErrorMsg('');
     setShowModal(true);
   };
 
   const handleOpenEditModal = (c: any) => {
     setIsEditMode(true);
-    setCustomerForm({ id: c.id, name: c.name, phone: c.phone, note: c.note || '' });
+    setCustomerForm({ 
+      id: c.id, 
+      name: c.name, 
+      phone: c.phone, 
+      note: c.note || '',
+      orders: c.orders || '',
+      paid: c.paid || '',
+      debt: c.debt || '',
+      acceptanceDate: c.acceptanceDate ? c.acceptanceDate.split('T')[0] : ''
+    });
     setErrorMsg('');
     setShowModal(true);
   };
@@ -134,29 +143,35 @@ export default function KhachHang() {
               <tr>
                 <th className="px-6 py-4">Khách Hàng</th>
                 <th className="px-6 py-4">Số điện thoại</th>
-                <th className="px-6 py-4 text-center">Phân hạng</th>
+                <th className="px-6 py-4">Đơn đặt hàng</th>
+                <th className="px-6 py-4 text-right">Thanh toán</th>
+                <th className="px-6 py-4 text-right">Còn nợ</th>
+                <th className="px-6 py-4">Ngày nghiệm thu</th>
                 <th className="px-6 py-4 text-center">Số lần mua</th>
-                <th className="px-6 py-4 text-right">Tổng Chi Tiêu</th>
-                <th className="px-6 py-4 text-right">Công nợ</th>
                 <th className="px-6 py-4">Ghi chú</th>
                 <th className="px-6 py-4 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {loading && customers.length === 0 ? (
-                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
+                <tr><td colSpan={9} className="px-6 py-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
               ) : filteredCustomers.length === 0 ? (
-                <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Không tìm thấy khách hàng nào.</td></tr>
+                <tr><td colSpan={9} className="px-6 py-8 text-center text-slate-500">Không tìm thấy khách hàng nào.</td></tr>
               ) : (
                 filteredCustomers.map((c) => (
                   <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4 font-semibold text-slate-800">{c.name}</td>
                     <td className="px-6 py-4">{c.phone}</td>
-                    <td className="px-6 py-4 text-center">{getCustomerBadge(c.totalSpent)}</td>
-                    <td className="px-6 py-4 text-center font-medium">{c.purchaseCount}</td>
-                    <td className="px-6 py-4 text-right font-bold text-sky-600">{formatMoney(c.totalSpent || 0)} đ</td>
-                    <td className="px-6 py-4 text-right font-bold text-red-500">{c.debt > 0 ? formatMoney(c.debt) + ' đ' : '-'}</td>
-                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{c.note || '-'}</td>
+                    <td className="px-6 py-4 whitespace-normal">{c.orders || '-'}</td>
+                    <td className="px-6 py-4 text-right font-medium text-green-600">{formatMoney(c.paid || 0)}</td>
+                    <td className="px-6 py-4 text-right font-medium text-red-600">{formatMoney(c.debt || 0)}</td>
+                    <td className="px-6 py-4">{c.acceptanceDate ? new Date(c.acceptanceDate).toLocaleDateString('vi-VN') : '-'}</td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-flex items-center justify-center bg-slate-100 text-slate-700 w-8 h-8 rounded-full font-medium">
+                        {c.purchaseCount || 0}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-normal text-slate-500 max-w-[200px] truncate">{c.note || '-'}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1">
                         <button 
@@ -230,6 +245,50 @@ export default function KhachHang() {
                   placeholder="Nhập số điện thoại..."
                   value={customerForm.phone}
                   onChange={(e) => setCustomerForm({...customerForm, phone: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Đơn đặt hàng</label>
+                <input 
+                  type="text" 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                  placeholder="Nhập thông tin đơn đặt hàng..."
+                  value={customerForm.orders}
+                  onChange={(e) => setCustomerForm({...customerForm, orders: e.target.value})}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Thanh toán</label>
+                  <input 
+                    type="number" 
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                    placeholder="0"
+                    value={customerForm.paid}
+                    onChange={(e) => setCustomerForm({...customerForm, paid: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Còn nợ</label>
+                  <input 
+                    type="number" 
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                    placeholder="0"
+                    value={customerForm.debt}
+                    onChange={(e) => setCustomerForm({...customerForm, debt: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ngày nghiệm thu</label>
+                <input 
+                  type="date" 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                  value={customerForm.acceptanceDate}
+                  onChange={(e) => setCustomerForm({...customerForm, acceptanceDate: e.target.value})}
                 />
               </div>
 

@@ -13,7 +13,7 @@
 const HEADERS_THUCHI = ['ID', 'Ngày', 'Nội dung Chi', 'Số tiền Chi', 'Nội dung Thu', 'Số tiền Thu', 'Người Giao/Nhận', 'Người Lập Phiếu'];
 const HEADERS_BANHANG = ['ID', 'Ngày', 'SĐT Khách', 'Tên Khách', 'Chi tiết (JSON)', 'Tổng Tiền', 'Đã Thanh Toán', 'Còn Nợ', 'Ghi chú', 'Người Tạo'];
 const HEADERS_NHAPKHO = ['ID', 'Ngày', 'Nhà Cung Cấp', 'Chi tiết (JSON)', 'Tổng Cần Trả', 'Đã Thanh Toán', 'Còn Nợ', 'Ghi chú', 'Người Tạo'];
-const HEADERS_KHACHHANG = ['ID', 'SĐT', 'Tên Khách', 'Số lần mua', 'Ghi chú'];
+const HEADERS_KHACHHANG = ['ID', 'SĐT', 'Tên Khách', 'Số lần mua', 'Ghi chú', 'Đơn đặt hàng', 'Thanh Toán', 'Còn Nợ', 'Ngày Nghiệm Thu'];
 const HEADERS_TONKHO = ['ID', 'Mã SP', 'Tên Sản Phẩm', 'ĐVT', 'Giá Nhập', 'Giá Bán', 'Số lượng Tồn'];
 const HEADERS_LICHSUKHO = ['ID', 'Mã SP', 'Tên Sản Phẩm', 'Ngày', 'Loại (import/export)', 'Số lượng', 'Ghi chú', 'Người Thực Hiện'];
 const HEADERS_TAIKHOAN = ['ID', 'Tài khoản', 'Mật khẩu', 'Quyền', 'Họ Tên'];
@@ -488,8 +488,8 @@ function doPostInner(e, payload, ss) {
       if (action === 'add') {
         const d = payload.data || payload;
         const newId = generateId();
-        // ID, SĐT, Tên Khách, Số lần mua, Ghi chú
-        sheet.appendRow([newId, "'" + d.phone, d.name, 0, d.note || ""]);
+        // ID, SĐT, Tên Khách, Số lần mua, Ghi chú, Đơn đặt hàng, Thanh Toán, Còn Nợ, Ngày Nghiệm Thu
+        sheet.appendRow([newId, "'" + d.phone, d.name, 0, d.note || "", d.orders || "", Number(d.paid) || 0, Number(d.debt) || 0, d.acceptanceDate || ""]);
         logAudit(ss, user, "Thêm Mới", "Khách Hàng", `Thêm khách hàng: ${d.name}`);
         
         // ---- Bắn thông báo Telegram Thêm Khách Hàng ----
@@ -508,10 +508,14 @@ function doPostInner(e, payload, ss) {
         const d = payload.data || payload;
         const match = getRowById(sheet, d.id);
         if (match) {
-          // ID ở cột 1, SĐT ở cột 2, Tên ở cột 3, Số lần mua ở cột 4, Ghi chú ở cột 5
+          // ID ở cột 1, SĐT ở cột 2, Tên ở cột 3, Số lần mua ở cột 4, Ghi chú ở cột 5, Đơn đặt hàng ở cột 6, Thanh Toán ở cột 7, Còn Nợ ở cột 8, Ngày Nghiệm Thu ở cột 9
           sheet.getRange(match.rowNum, 2).setValue("'" + d.phone);
           sheet.getRange(match.rowNum, 3).setValue(d.name);
           sheet.getRange(match.rowNum, 5).setValue(d.note || "");
+          sheet.getRange(match.rowNum, 6).setValue(d.orders || "");
+          sheet.getRange(match.rowNum, 7).setValue(Number(d.paid) || 0);
+          sheet.getRange(match.rowNum, 8).setValue(Number(d.debt) || 0);
+          sheet.getRange(match.rowNum, 9).setValue(d.acceptanceDate || "");
           logAudit(ss, user, "Cập nhật", "Khách Hàng", `Sửa thông tin KH: ${d.name}`);
           return responseJson({ success: true });
         }
@@ -543,7 +547,7 @@ function doPostInner(e, payload, ss) {
           sheetKhachHang.getRange(khRowIndex, 3).setValue(d.customerName);
           sheetKhachHang.getRange(khRowIndex, 4).setValue(currentCount + 1);
         } else {
-          sheetKhachHang.appendRow([generateId(), "'" + d.phone, d.customerName, 1, ""]);
+          sheetKhachHang.appendRow([generateId(), "'" + d.phone, d.customerName, 1, "", "", 0, 0, ""]);
         }
 
         // 2. Thêm Bán Hàng
