@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { X, FileDown, Printer } from 'lucide-react';
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import * as XLSX from 'xlsx';
 
 export interface ReportColumn {
   header: string;
@@ -47,8 +48,8 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
 
   if (!isOpen) return null;
 
-  const handleExportCSV = () => {
-    const headers = ["STT", ...columns.map(c => c.header)].map(h => `"${h}"`).join(',');
+  const handleExportExcel = () => {
+    const headers = ["STT", ...columns.map(c => c.header)];
     const rows = filteredData.map((row, idx) => {
       const rowData = columns.map(c => {
         let val: string | number = '';
@@ -57,21 +58,24 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
         } else if (c.key) {
           val = row[c.key];
         }
-        return `"${String(val ?? '').replace(/"/g, '""')}"`;
+        return val;
       });
-      return [`"${idx + 1}"`, ...rowData].join(',');
+      return [idx + 1, ...rowData];
     });
     
-    const csv = [headers, ...rows].join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename}_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Add totals row if exists (simplistic evaluation by just leaving blank/formulas if we want, but let's just keep it simple)
+    // Actually, XLSX supports aoa_to_sheet perfectly
+    const wsData = [headers, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    
+    // Auto-size columns roughly
+    const colWidths = headers.map(h => ({ wch: Math.max(10, h.length + 5) }));
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Báo Cáo");
+    
+    XLSX.writeFile(wb, `${filename}_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
   };
 
   const handlePrint = () => {
@@ -131,10 +135,10 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
               <Printer size={16} /> In báo cáo
             </button>
             <button 
-              onClick={handleExportCSV}
+              onClick={handleExportExcel}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm"
             >
-              <FileDown size={16} /> Xuất CSV
+              <FileDown size={16} /> Xuất Excel
             </button>
           </div>
         </div>
@@ -150,7 +154,7 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
               </p>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto print:overflow-visible">
               <table className="w-full text-left text-sm whitespace-nowrap print:text-xs">
                 <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase text-xs font-semibold">
                   <tr>
@@ -195,6 +199,10 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
 
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
+          @page {
+            size: A4 landscape;
+            margin: 10mm;
+          }
           body * {
             visibility: hidden;
           }
@@ -206,12 +214,29 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
             left: 0;
             top: 0;
             width: 100%;
-            height: 100%;
-            padding: 20px !important;
+            height: auto;
+            padding: 0 !important;
             background: white !important;
           }
           .print\\:block {
             display: block !important;
+          }
+          table {
+            page-break-inside: auto;
+            width: 100% !important;
+          }
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          thead {
+            display: table-header-group;
+          }
+          tfoot {
+            display: table-footer-group;
+          }
+          .overflow-x-auto {
+            overflow: visible !important;
           }
         }
       `}} />
