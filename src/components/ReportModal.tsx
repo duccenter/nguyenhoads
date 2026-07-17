@@ -51,7 +51,7 @@ export default function ReportModal({ isOpen, onClose, title, data, dateField, c
     const headers = ["STT", ...columns.map(c => c.header)].map(h => `"${h}"`).join(',');
     const rows = filteredData.map((row, idx) => {
       const rowData = columns.map(c => {
-        let val = '';
+        let val: string | number = '';
         if (c.exportValue) {
           val = c.exportValue(row);
         } else if (c.key) {

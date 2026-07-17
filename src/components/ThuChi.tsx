@@ -13,8 +13,7 @@ import {
   FileBarChart
 } from 'lucide-react';
 import { fetchData, postData } from '../api';
-import ReportModal, { ReportColumn } from './ReportModal';
-import { formatMoney } from '../utils';
+import ReportModal from './ReportModal';
 
 // --- TYPES ---
 interface RecordData {
