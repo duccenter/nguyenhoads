@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Package, PlusCircle, RefreshCw, Edit, X, Search } from 'lucide-react';
+import { Package, PlusCircle, RefreshCw, Edit, X, Search, FileBarChart } from 'lucide-react';
 import { formatMoney } from '../utils';
 import { fetchData, postData } from '../api';
+import ReportModal from './ReportModal';
+import { format } from 'date-fns';
 
 export default function KhoHang() {
   const [products, setProducts] = useState<any[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [supplier, setSupplier] = useState('');
@@ -16,12 +19,16 @@ export default function KhoHang() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [filterSearch, setFilterSearch] = useState('');
+  
+  // Report Modal
+  const [showReport, setShowReport] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
     try {
       const res = await fetchData('khohang');
       if (res.products) setProducts(res.products);
+      if (res.logs) setLogs(res.logs);
     } catch (err) {
       console.error(err);
     } finally {
@@ -241,6 +248,13 @@ export default function KhoHang() {
                   onChange={(e) => setFilterSearch(e.target.value)}
                 />
               </div>
+              <button 
+                onClick={() => setShowReport(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-medium transition-colors"
+                style={{ height: '42px' }}
+              >
+                <FileBarChart size={18} /> Báo cáo Lịch sử
+              </button>
             </div>
           </div>
           <div className="table-responsive">
@@ -347,6 +361,24 @@ export default function KhoHang() {
           </div>
         </div>
       )}
+
+      <ReportModal 
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        title="Báo Cáo Lịch Sử Nhập/Xuất Kho"
+        data={logs}
+        dateField="date"
+        filename="BaoCao_KhoHang"
+        columns={[
+          { header: 'Ngày', key: 'date', render: (row) => row.date ? format(new Date(row.date), 'dd/MM/yyyy') : '-' },
+          { header: 'Loại', key: 'type', render: (row) => <span className={`px-2 py-1 rounded-full text-xs font-bold ${row.type === 'import' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{row.type === 'import' ? 'NHẬP' : 'XUẤT'}</span> },
+          { header: 'Mã SP', key: 'productId', render: (row) => row.productId || '-' },
+          { header: 'Tên Sản Phẩm', key: 'productName', render: (row) => row.productName || '-' },
+          { header: 'Số lượng', key: 'quantity', render: (row) => row.quantity || 0, align: 'center' },
+          { header: 'Người tạo', key: 'user', render: (row) => row.user || '-' },
+          { header: 'Ghi chú', key: 'note', render: (row) => row.note || '-' }
+        ]}
+      />
     </div>
   );
 }

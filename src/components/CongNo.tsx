@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, RefreshCw, Search } from 'lucide-react';
+import { CheckCircle, RefreshCw, Search, FileBarChart } from 'lucide-react';
 import { formatMoney } from '../utils';
 import { fetchData, postData } from '../api';
+import ReportModal from './ReportModal';
+import { format } from 'date-fns';
 
 export default function CongNo() {
   const [activeTab, setActiveTab] = useState<'phaithu' | 'phaitra'>('phaithu');
@@ -18,6 +20,9 @@ export default function CongNo() {
   const [filterSearch, setFilterSearch] = useState('');
   const [filterFromDate, setFilterFromDate] = useState('');
   const [filterToDate, setFilterToDate] = useState('');
+
+  // Report Modal
+  const [showReport, setShowReport] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -153,6 +158,13 @@ export default function CongNo() {
                 onChange={(e) => setFilterToDate(e.target.value)}
               />
             </div>
+            <button 
+              onClick={() => setShowReport(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-medium transition-colors"
+              style={{ height: '42px' }}
+            >
+              <FileBarChart size={18} /> Xuất báo cáo
+            </button>
           </div>
         </div>
         <div className="table-responsive">
@@ -234,6 +246,35 @@ export default function CongNo() {
           </div>
         </div>
       )}
+
+      <ReportModal 
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        title={`Báo Cáo Công Nợ - ${activeTab === 'phaithu' ? 'Khách Hàng' : 'Nhà Cung Cấp'}`}
+        data={rawCurrentData}
+        dateField="date"
+        filename={`BaoCao_CongNo_${activeTab}`}
+        columns={[
+          { header: activeTab === 'phaithu' ? 'Tên Khách' : 'Tên NCC', key: 'name', render: (row) => row.name || '-' },
+          { header: 'Số điện thoại', key: 'phone', render: (row) => row.phone || '-' },
+          { header: 'Ngày', key: 'date', render: (row) => row.date ? format(new Date(row.date), 'dd/MM/yyyy') : '-' },
+          { header: 'Tổng Tiền', exportValue: (row) => row.totalAmount, render: (row) => <span className="font-semibold text-slate-800">{formatMoney(row.totalAmount || 0)}</span>, align: 'right' },
+          { header: 'Đã Thanh Toán', exportValue: (row) => row.paid, render: (row) => <span className="text-green-600 font-medium">{formatMoney(row.paid || 0)}</span>, align: 'right' },
+          { header: 'Còn Nợ', exportValue: (row) => row.debt, render: (row) => <span className="text-red-600 font-bold">{formatMoney(row.debt || 0)}</span>, align: 'right' }
+        ]}
+        totals={(filteredData) => {
+          const tAmount = filteredData.reduce((sum, item) => sum + (item.totalAmount || 0), 0);
+          const tPaid = filteredData.reduce((sum, item) => sum + (item.paid || 0), 0);
+          const tDebt = filteredData.reduce((sum, item) => sum + (item.debt || 0), 0);
+          return (
+            <tr>
+              <td colSpan={4} className="px-6 py-4 text-right text-slate-800">Tổng Tiền: {formatMoney(tAmount)}</td>
+              <td className="px-6 py-4 text-right text-green-700">Đã Thanh Toán: {formatMoney(tPaid)}</td>
+              <td className="px-6 py-4 text-right text-red-700">Tổng Nợ: {formatMoney(tDebt)}</td>
+            </tr>
+          );
+        }}
+      />
     </div>
   );
 }

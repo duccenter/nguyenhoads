@@ -9,9 +9,12 @@ import {
   RefreshCw,
   Edit,
   Search,
-  X
+  X,
+  FileBarChart
 } from 'lucide-react';
 import { fetchData, postData } from '../api';
+import ReportModal, { ReportColumn } from './ReportModal';
+import { formatMoney } from '../utils';
 
 // --- TYPES ---
 interface RecordData {
@@ -48,6 +51,9 @@ export default function ThuChi() {
 
   // Filters
   const [filterSearch, setFilterSearch] = useState('');
+  
+  // Report Modal
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     loadData(currentMonth, currentYear);
@@ -299,7 +305,7 @@ export default function ThuChi() {
           <div className="card-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h2 className="card-title" style={{ margin: 0 }}>Lịch sử Thu Chi</h2>
             
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', background: '#f8f9fa', padding: '1rem', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', background: '#f8f9fa', padding: '1rem', borderRadius: '8px', alignItems: 'center' }}>
               <div style={{ flex: '1 1 300px', position: 'relative' }}>
                 <Search size={18} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
                 <input 
@@ -311,6 +317,13 @@ export default function ThuChi() {
                   onChange={(e) => setFilterSearch(e.target.value)}
                 />
               </div>
+              <button 
+                onClick={() => setShowReport(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-medium transition-colors"
+                style={{ height: '42px' }}
+              >
+                <FileBarChart size={18} /> Xuất báo cáo
+              </button>
             </div>
           </div>
           <div className="table-responsive">
@@ -468,6 +481,35 @@ export default function ThuChi() {
         </div>
         </div>
       )}
+
+      <ReportModal 
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        title="Báo Cáo Sổ Thu Chi"
+        data={data}
+        dateField="date"
+        filename="BaoCao_ThuChi"
+        columns={[
+          { header: 'Ngày', key: 'date', render: (row) => format(new Date(row.date), 'dd/MM/yyyy') },
+          { header: 'Nội dung Thu', key: 'incomeContent', render: (row) => row.incomeContent || '-' },
+          { header: 'Số tiền Thu', exportValue: (row) => row.incomeAmount, render: (row) => <span className="text-green-600 font-medium">{row.incomeAmount > 0 ? formatMoney(row.incomeAmount) : '-'}</span>, align: 'right' },
+          { header: 'Nội dung Chi', key: 'expenseContent', render: (row) => row.expenseContent || '-' },
+          { header: 'Số tiền Chi', exportValue: (row) => row.expenseAmount, render: (row) => <span className="text-red-600 font-medium">{row.expenseAmount > 0 ? formatMoney(row.expenseAmount) : '-'}</span>, align: 'right' },
+          { header: 'Người Giao/Nhận', key: 'personName', render: (row) => row.personName || '-' },
+          { header: 'Người lập', key: 'creatorName', render: (row) => row.creatorName || '-' }
+        ]}
+        totals={(filteredData) => {
+          const tIncome = filteredData.reduce((sum, item) => sum + (item.incomeAmount || 0), 0);
+          const tExpense = filteredData.reduce((sum, item) => sum + (item.expenseAmount || 0), 0);
+          return (
+            <tr>
+              <td colSpan={3} className="px-6 py-4 text-right text-green-700">Tổng Thu: {formatMoney(tIncome)}</td>
+              <td colSpan={2} className="px-6 py-4 text-right text-red-700">Tổng Chi: {formatMoney(tExpense)}</td>
+              <td colSpan={3}></td>
+            </tr>
+          );
+        }}
+      />
     </div>
   );
 }

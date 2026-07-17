@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, X, Save, Edit2, Trash2 } from 'lucide-react';
+import { Search, UserPlus, X, Save, Edit2, Trash2, FileBarChart } from 'lucide-react';
 import { formatMoney } from '../utils';
 import { fetchData, postData } from '../api';
+import ReportModal from './ReportModal';
+import { format } from 'date-fns';
 
 export default function KhachHang() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -14,6 +16,9 @@ export default function KhachHang() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customerForm, setCustomerForm] = useState({ id: '', name: '', phone: '', address: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
   const [errorMsg, setErrorMsg] = useState('');
+  
+  // Report Modal
+  const [showReport, setShowReport] = useState(false);
 
   const loadData = () => {
     setLoading(true);
@@ -130,6 +135,12 @@ export default function KhachHang() {
               className="flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm"
             >
               <UserPlus size={18} /> Thêm khách hàng
+            </button>
+            <button 
+              onClick={() => setShowReport(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm"
+            >
+              <FileBarChart size={18} /> Xuất báo cáo
             </button>
           </div>
         </div>
@@ -333,6 +344,36 @@ export default function KhachHang() {
           </div>
         </div>
       )}
+
+      <ReportModal 
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        title="Báo Cáo Khách Hàng Nghiệm Thu"
+        data={customers}
+        dateField="acceptanceDate"
+        filename="BaoCao_KhachHang"
+        columns={[
+          { header: 'Khách Hàng', key: 'name', render: (row) => row.name || '-' },
+          { header: 'Số điện thoại', key: 'phone', render: (row) => row.phone || '-' },
+          { header: 'Địa chỉ', key: 'address', render: (row) => row.address || '-' },
+          { header: 'Đơn đặt hàng', key: 'orders', render: (row) => row.orders || '-' },
+          { header: 'Thanh toán', exportValue: (row) => row.paid, render: (row) => <span className="text-green-600 font-medium">{formatMoney(row.paid || 0)}</span>, align: 'right' },
+          { header: 'Còn nợ', exportValue: (row) => row.debt, render: (row) => <span className="text-red-600 font-bold">{formatMoney(row.debt || 0)}</span>, align: 'right' },
+          { header: 'Ngày nghiệm thu', key: 'acceptanceDate', render: (row) => row.acceptanceDate ? format(new Date(row.acceptanceDate), 'dd/MM/yyyy') : '-' },
+          { header: 'Ghi chú', key: 'note', render: (row) => row.note || '-' }
+        ]}
+        totals={(filteredData) => {
+          const tPaid = filteredData.reduce((sum, item) => sum + (Number(item.paid) || 0), 0);
+          const tDebt = filteredData.reduce((sum, item) => sum + (Number(item.debt) || 0), 0);
+          return (
+            <tr>
+              <td colSpan={5} className="px-6 py-4 text-right text-green-700">Tổng Thanh Toán: {formatMoney(tPaid)}</td>
+              <td className="px-6 py-4 text-right text-red-700">Tổng Nợ: {formatMoney(tDebt)}</td>
+              <td colSpan={2}></td>
+            </tr>
+          );
+        }}
+      />
     </div>
   );
 }
