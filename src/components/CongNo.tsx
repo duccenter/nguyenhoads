@@ -201,6 +201,7 @@ export default function CongNo() {
                       <td>
                         <div style={{ fontWeight: 'bold' }}>{row.name}</div>
                         <div style={{ fontSize: '0.85rem', color: '#666' }}>{row.phone}</div>
+                        {row.note && <div style={{ fontSize: '0.8rem', color: '#0284c7', marginTop: '2px', fontStyle: 'italic' }}>Ghi chú: {row.note}</div>}
                       </td>
                       <td className="text-right" style={{ color: 'var(--text-secondary)' }}>{formatMoney(row.total)}</td>
                       <td className="text-right" style={{ color: activeTab === 'phaithu' ? 'var(--expense-color)' : 'var(--income-color)', fontWeight: 'bold' }}>

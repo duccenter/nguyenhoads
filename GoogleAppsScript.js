@@ -1117,7 +1117,8 @@ function triggerFirebaseSync(ss, modules) {
             phaithu.push({
               id: row[0], date: row[1] instanceof Date ? row[1].toISOString().split('T')[0] : row[1],
               phone: row[2], name: row[3], total: row[5], debt: debt,
-              dueDate: row[10] instanceof Date ? row[10].toISOString().split('T')[0] : row[10]
+              dueDate: row[10] instanceof Date ? row[10].toISOString().split('T')[0] : row[10],
+              note: row[8] || ""
             });
           }
         }
@@ -1132,7 +1133,8 @@ function triggerFirebaseSync(ss, modules) {
             phaithu.push({
               id: row[0], date: row[8] instanceof Date ? row[8].toISOString().split('T')[0] : row[8],
               phone: row[1], name: row[2], total: (Number(row[6])||0) + debt, debt: debt,
-              dueDate: row[10] instanceof Date ? row[10].toISOString().split('T')[0] : row[10]
+              dueDate: row[10] instanceof Date ? row[10].toISOString().split('T')[0] : row[10],
+              note: row[4] || ""
             });
           }
         }
