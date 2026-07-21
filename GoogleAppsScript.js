@@ -488,8 +488,8 @@ function doPostInner(e, payload, ss) {
       if (action === 'add') {
         const d = payload.data || payload;
         const newId = generateId();
-        // ID, SĐT, Tên Khách, Số lần mua, Ghi chú, Đơn đặt hàng, Thanh Toán, Còn Nợ, Ngày Nghiệm Thu, Địa chỉ
-        sheet.appendRow([newId, "'" + d.phone, d.name, 0, d.note || "", d.orders || "", Number(d.paid) || 0, Number(d.debt) || 0, d.acceptanceDate || "", d.address || ""]);
+        // ID, SĐT, Tên Khách, Số lần mua, Ghi chú, Đơn đặt hàng, Thanh Toán, Còn Nợ, Ngày Nghiệm Thu, Địa chỉ, Hạn thu tiền
+        sheet.appendRow([newId, "'" + d.phone, d.name, 0, d.note || "", d.orders || "", Number(d.paid) || 0, Number(d.debt) || 0, d.acceptanceDate || "", d.address || "", d.dueDate ? new Date(d.dueDate) : ""]);
         logAudit(ss, user, "Thêm Mới", "Khách Hàng", `Thêm khách hàng: ${d.name}`);
         
         // ---- Bắn thông báo Telegram Thêm Khách Hàng ----
@@ -522,6 +522,7 @@ function doPostInner(e, payload, ss) {
           sheet.getRange(match.rowNum, 8).setValue(Number(d.debt) || 0);
           sheet.getRange(match.rowNum, 9).setValue(d.acceptanceDate || "");
           sheet.getRange(match.rowNum, 10).setValue(d.address || "");
+          sheet.getRange(match.rowNum, 11).setValue(d.dueDate ? new Date(d.dueDate) : "");
           logAudit(ss, user, "Cập nhật", "Khách Hàng", `Sửa thông tin KH: ${d.name}`);
 
           // ---- Bắn thông báo Telegram Cập nhật Khách Hàng ----
@@ -577,7 +578,7 @@ function doPostInner(e, payload, ss) {
         const newId = generateId();
         const totalAmount = d.items.reduce((sum, item) => sum + (Number(item.price) * Number(item.qty)), 0);
         const debt = totalAmount - (Number(d.paidAmount) || 0);
-        sheetBanHang.appendRow([newId, new Date(d.date), "'" + d.phone, d.customerName, JSON.stringify(d.items), totalAmount, Number(d.paidAmount) || 0, debt, d.note || "", user]);
+        sheetBanHang.appendRow([newId, new Date(d.date), "'" + d.phone, d.customerName, JSON.stringify(d.items), totalAmount, Number(d.paidAmount) || 0, debt, d.note || "", user, d.dueDate ? new Date(d.dueDate) : ""]);
 
         // 3. Xử lý Tồn Kho
         const sheetTK = ss.getSheetByName("Tồn Kho");
@@ -712,8 +713,8 @@ function doPostInner(e, payload, ss) {
           }
 
           // 4. Cập nhật Bán Hàng
-          sheetBanHang.getRange(match.rowNum, 2, 1, 9).setValues([[
-            new Date(d.date), "'" + d.phone, d.customerName, JSON.stringify(d.items), totalAmount, Number(d.paidAmount) || 0, debt, d.note || "", user
+          sheetBanHang.getRange(match.rowNum, 2, 1, 10).setValues([[
+            new Date(d.date), "'" + d.phone, d.customerName, JSON.stringify(d.items), totalAmount, Number(d.paidAmount) || 0, debt, d.note || "", user, d.dueDate ? new Date(d.dueDate) : ""
           ]]);
           
           logAudit(ss, user, "Cập nhật", "Bán Hàng", `Cập nhật phiếu bán KH: ${d.customerName}. Tổng tiền: ${totalAmount}`);
@@ -859,6 +860,27 @@ function doPostInner(e, payload, ss) {
             break;
           }
         }
+        
+        // Nếu không tìm thấy trong Bán Hàng, tìm trong Khách Hàng (nếu là thu nợ)
+        if (targetRow === -1 && type === 'thu') {
+          targetSheet = ss.getSheetByName("Khách Hàng");
+          dataArr = targetSheet.getDataRange().getValues();
+          for (let i = 1; i < dataArr.length; i++) {
+            if (dataArr[i][0] === d.id) {
+              targetRow = i + 1;
+              pName = dataArr[i][2]; // Tên Khách
+              let paidAmountCol = 6;
+              let currentPaid = Number(dataArr[i][paidAmountCol]);
+              let currentDebt = Number(dataArr[i][7]);
+              let newPaid = currentPaid + Number(d.amount);
+              let newDebt = currentDebt - Number(d.amount);
+              
+              targetSheet.getRange(targetRow, paidAmountCol + 1).setValue(newPaid);
+              targetSheet.getRange(targetRow, 8).setValue(newDebt); // Cột Còn nợ
+              break;
+            }
+          }
+        }
 
         if (targetRow === -1) return responseJson({ error: 'Không tìm thấy đơn hàng' }, 404);
 
@@ -922,6 +944,53 @@ function responseJson(data, statusCode = 200) {
   const output = ContentService.createTextOutput(JSON.stringify(data));
   output.setMimeType(ContentService.MimeType.JSON);
   return output;
+}
+
+// Hàm gửi thông báo công nợ định kỳ (được trigger hàng ngày)
+function checkAndSendDebtNotifications() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const now = new Date();
+  const warningLimit = new Date();
+  warningLimit.setDate(now.getDate() + 3); // Báo trước 3 ngày
+  
+  let msgs = [];
+  
+  // Kiểm tra Bán Hàng
+  const bhSheet = ss.getSheetByName("Bán Hàng");
+  if (bhSheet) {
+    const bhData = bhSheet.getDataRange().getValues();
+    for (let i = 1; i < bhData.length; i++) {
+      let debt = Number(bhData[i][7]);
+      let dueDate = bhData[i][10]; // Cột 11
+      if (debt > 0 && dueDate && dueDate instanceof Date) {
+        if (dueDate.getTime() <= warningLimit.getTime()) {
+          let isOverdue = dueDate.getTime() < now.setHours(0,0,0,0);
+          msgs.push(`- KH: ${bhData[i][3]} | Nợ: ${formatVND(debt)} | Hạn: ${dueDate.toISOString().split('T')[0]} ${isOverdue ? '(QUÁ HẠN)' : ''}`);
+        }
+      }
+    }
+  }
+
+  // Kiểm tra Khách Hàng
+  const khSheet = ss.getSheetByName("Khách Hàng");
+  if (khSheet) {
+    const khData = khSheet.getDataRange().getValues();
+    for (let i = 1; i < khData.length; i++) {
+      let debt = Number(khData[i][7]);
+      let dueDate = khData[i][10]; // Cột 11
+      if (debt > 0 && dueDate && dueDate instanceof Date) {
+        if (dueDate.getTime() <= warningLimit.getTime()) {
+          let isOverdue = dueDate.getTime() < now.setHours(0,0,0,0);
+          msgs.push(`- KH (Ngoài HĐ): ${khData[i][2]} | Nợ: ${formatVND(debt)} | Hạn: ${dueDate.toISOString().split('T')[0]} ${isOverdue ? '(QUÁ HẠN)' : ''}`);
+        }
+      }
+    }
+  }
+
+  if (msgs.length > 0) {
+    let header = "🚨 <b>THÔNG BÁO CÔNG NỢ SẮP/ĐÃ ĐẾN HẠN</b> 🚨\n\n";
+    sendTelegramMessage(header + msgs.join("\n"));
+  }
 }
 
 function generateId() {
@@ -1047,7 +1116,23 @@ function triggerFirebaseSync(ss, modules) {
           if (debt > 0) {
             phaithu.push({
               id: row[0], date: row[1] instanceof Date ? row[1].toISOString().split('T')[0] : row[1],
-              phone: row[2], name: row[3], total: row[5], debt: debt
+              phone: row[2], name: row[3], total: row[5], debt: debt,
+              dueDate: row[10] instanceof Date ? row[10].toISOString().split('T')[0] : row[10]
+            });
+          }
+        }
+        
+        const khSheet = ss.getSheetByName("Khách Hàng");
+        const khValues = khSheet.getDataRange().getValues();
+        for (let i = 1; i < khValues.length; i++) {
+          let row = khValues[i];
+          if (!row[0]) continue;
+          let debt = Number(row[7]) || 0;
+          if (debt > 0) {
+            phaithu.push({
+              id: row[0], date: row[8] instanceof Date ? row[8].toISOString().split('T')[0] : row[8],
+              phone: row[1], name: row[2], total: (Number(row[6])||0) + debt, debt: debt,
+              dueDate: row[10] instanceof Date ? row[10].toISOString().split('T')[0] : row[10]
             });
           }
         }

@@ -14,7 +14,7 @@ export default function KhachHang() {
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [customerForm, setCustomerForm] = useState({ id: '', name: '', phone: '', address: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
+  const [customerForm, setCustomerForm] = useState({ id: '', name: '', phone: '', address: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '', dueDate: '' });
   const [errorMsg, setErrorMsg] = useState('');
   
   // Report Modal
@@ -45,7 +45,7 @@ export default function KhachHang() {
 
   const handleOpenAddModal = () => {
     setIsEditMode(false);
-    setCustomerForm({ id: '', name: '', phone: '', address: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '' });
+    setCustomerForm({ id: '', name: '', phone: '', address: '', note: '', orders: '', paid: '', debt: '', acceptanceDate: '', dueDate: '' });
     setErrorMsg('');
     setShowModal(true);
   };
@@ -61,7 +61,8 @@ export default function KhachHang() {
       orders: c.orders || '',
       paid: c.paid || '',
       debt: c.debt || '',
-      acceptanceDate: c.acceptanceDate ? c.acceptanceDate.split('T')[0] : ''
+      acceptanceDate: c.acceptanceDate ? c.acceptanceDate.split('T')[0] : '',
+      dueDate: c.dueDate ? c.dueDate.split('T')[0] : ''
     });
     setErrorMsg('');
     setShowModal(true);
@@ -303,14 +304,27 @@ export default function KhachHang() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ngày nghiệm thu</label>
-                <input 
-                  type="date" 
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
-                  value={customerForm.acceptanceDate}
-                  onChange={(e) => setCustomerForm({...customerForm, acceptanceDate: e.target.value})}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ngày nghiệm thu</label>
+                  <input 
+                    type="date" 
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                    value={customerForm.acceptanceDate}
+                    onChange={(e) => setCustomerForm({...customerForm, acceptanceDate: e.target.value})}
+                  />
+                </div>
+                {Number(customerForm.debt) > 0 && (
+                  <div>
+                    <label className="block text-sm font-semibold text-red-600 mb-1.5">Hạn thu tiền</label>
+                    <input 
+                      type="date" 
+                      className="w-full px-4 py-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
+                      value={customerForm.dueDate}
+                      onChange={(e) => setCustomerForm({...customerForm, dueDate: e.target.value})}
+                    />
+                  </div>
+                )}
               </div>
 
               <div>

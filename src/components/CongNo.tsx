@@ -175,33 +175,64 @@ export default function CongNo() {
                 <th>Đối tác</th>
                 <th className="text-right">Tổng Tiền Đơn</th>
                 <th className="text-right">Còn Nợ</th>
+                {activeTab === 'phaithu' && <th className="text-center">Hạn thu tiền</th>}
                 <th className="text-center">Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {loading && currentData.length === 0 ? (
-                <tr><td colSpan={5} className="text-center" style={{padding: '2rem'}}>Đang tải dữ liệu...</td></tr>
+                <tr><td colSpan={activeTab === 'phaithu' ? 6 : 5} className="text-center" style={{padding: '2rem'}}>Đang tải dữ liệu...</td></tr>
               ) : currentData.length === 0 ? (
-                <tr><td colSpan={5} className="text-center" style={{padding: '2rem', color: 'var(--text-secondary)'}}>{rawCurrentData.length === 0 ? 'Không có công nợ nào.' : 'Không tìm thấy kết quả phù hợp.'}</td></tr>
+                <tr><td colSpan={activeTab === 'phaithu' ? 6 : 5} className="text-center" style={{padding: '2rem', color: 'var(--text-secondary)'}}>{rawCurrentData.length === 0 ? 'Không có công nợ nào.' : 'Không tìm thấy kết quả phù hợp.'}</td></tr>
               ) : (
-                currentData.map((row) => (
-                  <tr key={row.id}>
-                    <td>{row.date}</td>
-                    <td>
-                      <div style={{ fontWeight: 'bold' }}>{row.name}</div>
-                      <div style={{ fontSize: '0.85rem', color: '#666' }}>{row.phone}</div>
-                    </td>
-                    <td className="text-right" style={{ color: 'var(--text-secondary)' }}>{formatMoney(row.total)}</td>
-                    <td className="text-right" style={{ color: activeTab === 'phaithu' ? 'var(--expense-color)' : 'var(--income-color)', fontWeight: 'bold' }}>
-                      {formatMoney(row.debt)}
-                    </td>
-                    <td className="text-center">
-                      <button className={activeTab === 'phaithu' ? "btn btn-income" : "btn btn-expense"} style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }} onClick={() => handleOpenPayModal(row, activeTab === 'phaithu' ? 'thu' : 'tra')}>
-                        {activeTab === 'phaithu' ? 'Thu Nợ' : 'Trả Nợ'}
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                currentData.map((row) => {
+                  let isDue = false;
+                  if (activeTab === 'phaithu' && row.dueDate) {
+                    const d = new Date(row.dueDate);
+                    const limit = new Date();
+                    limit.setDate(limit.getDate() + 3);
+                    if (d.getTime() <= limit.getTime()) {
+                      isDue = true;
+                    }
+                  }
+                  return (
+                    <tr key={row.id}>
+                      <td>{row.date}</td>
+                      <td>
+                        <div style={{ fontWeight: 'bold' }}>{row.name}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#666' }}>{row.phone}</div>
+                      </td>
+                      <td className="text-right" style={{ color: 'var(--text-secondary)' }}>{formatMoney(row.total)}</td>
+                      <td className="text-right" style={{ color: activeTab === 'phaithu' ? 'var(--expense-color)' : 'var(--income-color)', fontWeight: 'bold' }}>
+                        {formatMoney(row.debt)}
+                      </td>
+                      {activeTab === 'phaithu' && (
+                        <td className="text-center">
+                          {row.dueDate ? (
+                            <span style={{ 
+                              color: isDue ? 'white' : 'inherit', 
+                              backgroundColor: isDue ? 'var(--expense-color)' : 'transparent',
+                              padding: isDue ? '4px 8px' : '0',
+                              borderRadius: isDue ? '4px' : '0',
+                              fontWeight: isDue ? 'bold' : 'normal',
+                              display: 'inline-block'
+                            }}>
+                              {format(new Date(row.dueDate), 'dd/MM/yyyy')}
+                              {isDue && <div style={{ fontSize: '0.75rem' }}>{new Date(row.dueDate).getTime() < new Date().setHours(0,0,0,0) ? 'Đã quá hạn' : 'Sắp đến hạn'}</div>}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#999' }}>-</span>
+                          )}
+                        </td>
+                      )}
+                      <td className="text-center">
+                        <button className={activeTab === 'phaithu' ? "btn btn-income" : "btn btn-expense"} style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }} onClick={() => handleOpenPayModal(row, activeTab === 'phaithu' ? 'thu' : 'tra')}>
+                          {activeTab === 'phaithu' ? 'Thu Nợ' : 'Trả Nợ'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

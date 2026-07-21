@@ -41,6 +41,7 @@ interface SaleRecord {
   paidAmount: number;
   debt: number;
   note: string;
+  dueDate?: string;
   creatorName?: string;
 }
 
@@ -57,6 +58,7 @@ export default function BanHang() {
   const [items, setItems] = useState<SaleItem[]>([{ productId: '', code: '', name: '', qty: 1, price: 0, importPrice: 0 }]);
   const [paidAmount, setPaidAmount] = useState<string>('');
   const [note, setNote] = useState<string>('');
+  const [dueDate, setDueDate] = useState<string>('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Filters
@@ -140,7 +142,8 @@ export default function BanHang() {
       customerName,
       items,
       paidAmount: Number(paidAmount) || 0,
-      note
+      note,
+      dueDate: currentDebt > 0 ? dueDate : ''
     };
 
     setLoading(true);
@@ -176,6 +179,7 @@ export default function BanHang() {
     setItems(loadedItems.length > 0 ? loadedItems : [{ productId: '', code: '', name: '', searchVal: '', qty: 1, price: 0, importPrice: 0 }]);
     setPaidAmount(record.paidAmount.toString());
     setNote(record.note || '');
+    setDueDate(record.dueDate ? record.dueDate.split('T')[0] : '');
   };
 
   const cancelEdit = () => {
@@ -186,6 +190,7 @@ export default function BanHang() {
     setItems([{ productId: '', code: '', name: '', searchVal: '', qty: 1, price: 0, importPrice: 0 }]);
     setPaidAmount('');
     setNote('');
+    setDueDate('');
   };
 
   const handleDelete = async (id: string) => {
@@ -368,8 +373,20 @@ export default function BanHang() {
       </div>
 
       {currentDebt > 0 && (
-        <div style={{ marginBottom: '1rem', color: 'var(--expense-color)', fontWeight: 'bold' }}>
-          Khách Nợ: {formatMoney(currentDebt)} đ
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem', background: '#fee2e2', padding: '1rem', borderRadius: '8px' }}>
+          <div style={{ flex: 1, color: 'var(--expense-color)', fontSize: '1.1rem', fontWeight: 'bold' }}>
+            Khách Nợ: {formatMoney(currentDebt)} đ
+          </div>
+          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+            <label className="form-label" style={{ color: 'var(--expense-color)' }}>Hạn thu tiền (Không bắt buộc)</label>
+            <input 
+              type="date" 
+              className="form-control" 
+              style={{ borderColor: 'var(--expense-color)' }}
+              value={dueDate} 
+              onChange={(e) => setDueDate(e.target.value)} 
+            />
+          </div>
         </div>
       )}
 

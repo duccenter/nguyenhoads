@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Wallet, ShoppingCart, UserCheck, Package, Users, BarChart3, LogOut, Shield } from 'lucide-react';
+import DebtNotification from '../DebtNotification';
 
 interface User {
   username: string;
@@ -106,6 +107,7 @@ export default function MainLayout({ user, onLogout }: MainLayoutProps) {
       <main className="flex-1 overflow-y-auto bg-slate-50 relative p-3 sm:p-4 md:p-6 lg:p-8">
          <Outlet />
       </main>
+      <DebtNotification />
     </div>
   );
 }
