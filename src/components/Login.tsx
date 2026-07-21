@@ -95,7 +95,7 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: (user: any) 
         </form>
 
         <div className="mt-8 text-center text-sm text-slate-400">
-          <p>&copy; {new Date().getFullYear()} Diticoms. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Quảng Cáo Nguyễn Hồ. All rights reserved.</p>
         </div>
       </div>
     </div>
