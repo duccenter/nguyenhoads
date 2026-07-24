@@ -1009,7 +1009,7 @@ function doOptions(e) {
 
 
 // ---------------- FIREBASE SYNC ----------------
-const FIREBASE_URL = 'https://nguyenhoads-app-default-rtdb.asia-southeast1.firebasedatabase.app/';
+const FIREBASE_URL = 'https://appnguyenhoads-default-rtdb.asia-southeast1.firebasedatabase.app/';
 
 function triggerFirebaseSync(ss, modules) {
   try {
